@@ -53,7 +53,7 @@ func MStoTime(pass int64) (time_m, error) {
 	return ti, nil
 }
 
-func GetPassedTimeWithoutWeekend(t time.Time) (int64, int64, error) {
+func GetPassedTimeWithoutWeekend(t time.Time) (work int64, holiday int64, err error) {
 	ti, mill_ti := t, t.UnixMilli()
 
 	now := time.Now().In(loc)
@@ -62,8 +62,6 @@ func GetPassedTimeWithoutWeekend(t time.Time) (int64, int64, error) {
 	if err != nil {
 		return -1, -1, err
 	}
-
-	var holiday, work int64 = 0, 0
 
 	weeks := pass.Days / 7
 	if weeks >= 1 {
@@ -110,7 +108,7 @@ func GetPassedTimeWithoutWeekend(t time.Time) (int64, int64, error) {
 		}
 		work += dura_one_end
 	}
-	return work, holiday, nil
+	return
 }
 
 func GetPassedTimeWithoutWeekend_String(t string) (int64, int64, error) {

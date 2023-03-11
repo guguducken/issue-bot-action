@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,4 +32,39 @@ func HttpDo(req *http.Request) ([]byte, error) {
 	}
 
 	return arr, nil
+}
+
+func URLValid(path string) string {
+	var build strings.Builder
+	for i := 0; i < len(path); i++ {
+		switch path[i] {
+		case '+':
+			build.WriteString(`%2B`)
+
+		case ' ':
+			build.WriteString(`%20`)
+
+		case '/':
+			build.WriteString("%2F")
+
+		case '?':
+			build.WriteString(`%3F`)
+
+		case '%':
+			build.WriteString(`%25`)
+
+		case '#':
+			build.WriteString(`%23`)
+
+		case '&':
+			build.WriteString(`%26`)
+
+		case '=':
+			build.WriteString(`%3D`)
+
+		default:
+			build.WriteByte(path[i])
+		}
+	}
+	return build.String()
 }
