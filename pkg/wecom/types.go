@@ -1,5 +1,13 @@
 package wecom
 
+var (
+	BLACK         Color      = Color{0, 0, 0, 1}
+	RED           Color      = Color{255, 0, 0, 1}
+	GREEN         Color      = Color{0, 255, 0, 1}
+	BLUE          Color      = Color{0, 0, 255, 1}
+	FormatDefault TextFormat = TextFormat{"Courier New", 14, false, false, false, false, BLACK}
+)
+
 type TokenReply struct {
 	Code         int    `json:"errcode"`
 	Message      string `json:"errmsg"`
@@ -42,6 +50,9 @@ type AddSheetRequest struct {
 }
 
 type UpdateRangeRequest struct {
+	rows     int
+	columns  int
+	total    int
 	SheetID  string   `json:"sheet_id"`
 	GridData GridData `json:"grid_data"`
 }
@@ -80,8 +91,8 @@ type CellFormat struct {
 
 // only support Text or Link, only one
 type CellValue struct {
-	Text string `json:"text"`
-	Link Link   `json:"link"`
+	Text string `json:"text,omitempty"`
+	Link *Link  `json:"link,omitempty"`
 }
 
 type TextFormat struct {
@@ -109,6 +120,15 @@ type Color struct {
 // ----------------------------- Modify Tables Request End -------------------------------
 
 // ----------------------------- Modify Tables Response Start -------------------------------
+
+type Response struct {
+	Errcode int    `json:"errcode"`
+	Errmsg  string `json:"errmsg"`
+	Data    Data   `json:"data"`
+}
+type Data struct {
+	Responses []UpdateResponse `json:"responses"`
+}
 
 type UpdateResponse struct {
 	AddSheetResponse        AddSheetResponse        `json:"add_sheet_response"`

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/guguducken/auto-release/pkg/util"
@@ -20,15 +19,15 @@ var (
 	expiredTime int64 = 7200
 )
 
-func init() {
-	wecomAPI = os.Getenv(`INPUT_WECOM_API`)
-	corpID = os.Getenv(`INPUT_CORPID`)
-	corpSecret = os.Getenv(`INPUT_CORPSECRET`)
-	if corpID == "" || corpSecret == "" {
-		panic(`invalid corpID or corpSecret, please check again`)
-	}
-	getToken()
-}
+// func init() {
+// 	wecomAPI = os.Getenv(`INPUT_WECOM_API`)
+// 	corpID = os.Getenv(`INPUT_CORPID`)
+// 	corpSecret = os.Getenv(`INPUT_CORPSECRET`)
+// 	if corpID == "" || corpSecret == "" {
+// 		panic(`invalid corpID or corpSecret, please check again`)
+// 	}
+// 	getToken()
+// }
 
 func getToken() {
 	uri := wecomAPI + `/gettoken?corpid=` + corpID + `&corpsecret=` + corpSecret
