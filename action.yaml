@@ -1,0 +1,34 @@
+# action.yml
+name: 'Auto Release EKS'
+description: 'Clearing namespace automatically after ns or the corresponding issue expires'
+inputs:
+  token-action:  
+    description: 'The github access token'
+    required: true
+  k8s-server-url:
+    description: 'The APIServer url in k8s'
+    required: true
+  k8s-token:
+    description: 'The k8s access token'
+    required: true
+  expired-time:
+    description: 'Timeout period. If the namespace or related issue exceeds the timeout period, the namespace will be cleared'
+    required: true
+  labels:
+    description: 'The labels used to find the issue'
+    required: true
+    default: ''
+  exclusive:
+    description: 'The namespace to be checked is skipped'
+    required: false
+    default: 'kube-system'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.token-action }}
+    - ${{ inputs.k8s-server-url }}
+    - ${{ inputs.k8s-token }}
+    - ${{ inputs.expired-time }}
+    - ${{ inputs.labels }}
+    - ${{ inputs.exclusive }}
