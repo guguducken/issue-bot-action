@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/guguducken/auto-release/pkg/util"
@@ -17,17 +18,22 @@ var (
 	token_wecom string
 	startTime   time.Time
 	expiredTime int64 = 7200
+	url_notice  string
 )
 
-// func init() {
-// 	wecomAPI = os.Getenv(`INPUT_WECOM_API`)
-// 	corpID = os.Getenv(`INPUT_CORPID`)
-// 	corpSecret = os.Getenv(`INPUT_CORPSECRET`)
-// 	if corpID == "" || corpSecret == "" {
-// 		panic(`invalid corpID or corpSecret, please check again`)
-// 	}
-// 	getToken()
-// }
+func init() {
+	wecomAPI = os.Getenv(`INPUT_WECOM_API`)
+	corpID = os.Getenv(`INPUT_CORPID`)
+	corpSecret = os.Getenv(`INPUT_CORPSECRET`)
+	url_notice = os.Getenv(`INPUT_URL_NOTICE`)
+	if wecomAPI == "" || corpID == "" || corpSecret == "" {
+		panic(`Wecom Settings Error: invalid wecomAPI, corpID or corpSecret, please check again`)
+	}
+	if url_notice == "" {
+		util.Error(`WeCom notice url setting is invalid which will make notice fail, please check again`)
+	}
+	getToken()
+}
 
 func getToken() {
 	uri := wecomAPI + `/gettoken?corpid=` + corpID + `&corpsecret=` + corpSecret

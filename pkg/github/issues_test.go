@@ -1,7 +1,9 @@
 package github
 
 import (
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -9,27 +11,36 @@ import (
 )
 
 func Test_getIssue(t *testing.T) {
-	q_issue_list := NewIssueListQuery(`matrixorigin`, `matrixone`, ``, `open`, ``, ``, ``, ``, ``, ``, []string{"kind/bug", "severity/s1"})
+	q_issue_list := NewIssuesQuery(`matrixorigin`, `matrixone`, ``, `open`, ``, ``, ``, ``, ``, nil, nil)
 	issue, err := q_issue_list.GetAllIssues()
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
 	}
-	fmt.Printf("issue.Title: %v\n", issue[0].Title)
-	fmt.Printf("issue.CreatedAt: %v\n", issue[0].CreatedAt)
-	fmt.Printf("issue.UpdatedAt: %v\n", issue[0].UpdatedAt)
-	fmt.Printf("issue.CommentsURL: %v\n", issue[0].CommentsURL)
+	for i := 0; i < len(issue); i++ {
+		if issue[i].PullRequest == nil {
+			fmt.Printf("issue.Title: %v\n", issue[i].Title)
+			fmt.Printf("issue.CreatedAt: %v\n", issue[i].CreatedAt)
+			fmt.Printf("issue.UpdatedAt: %v\n", issue[i].UpdatedAt)
+			fmt.Printf("issue.CommentsURL: %v\n", issue[i].CommentsURL)
+			t, _ := json.Marshal(issue[i])
+			fmt.Printf("issue[0].Assignee.Login: %v\n", string(t))
+			break
+		} else {
+			fmt.Println(`Skip ` + strconv.Itoa(issue[i].Number))
+		}
+	}
 }
 
 func Test_expired(t *testing.T) {
-	q_issue_list := NewIssueListQuery(`matrixorigin`, `matrixone`, ``, `open`, ``, ``, ``, ``, ``, ``, []string{"kind/bug", "severity/s1"})
+	q_issue_list := NewIssuesQuery(`matrixorigin`, `matrixone`, ``, `open`, ``, ``, ``, ``, ``, nil, []string{"kind/bug", "severity/s1"})
 	issue, err := q_issue_list.GetAllIssues()
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
 	}
 	for i := 0; i < 10; i++ {
-		work, holiday, err := util.GetPassedTimeWithoutWeekend(issue[i].CreatedAt)
+		work, holiday, err := util.GetPassedTimeWithoutWeekend(*issue[i].CreatedAt)
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
 			return

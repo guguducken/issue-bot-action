@@ -2,7 +2,6 @@ package util
 
 import (
 	"crypto/tls"
-	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -24,13 +23,13 @@ func HttpDo(req *http.Request) ([]byte, error) {
 	}
 	arr, err := io.ReadAll(resp.Body)
 	defer resp.Body.Close()
-	if err != nil && err != io.EOF {
+	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != 200 {
-		return nil, errors.New(`error http status code: ` + strconv.Itoa(resp.StatusCode) + ` resp message: ` + string(arr))
+	if resp.StatusCode >= 300 {
+		Error(`http status code is invalid: ` + strconv.Itoa(resp.StatusCode) + ` resp message: ` + string(arr))
+		return nil, StatusError
 	}
-
 	return arr, nil
 }
 

@@ -33,3 +33,15 @@ func Test_UpdateTable(t *testing.T) {
 	}
 	fmt.Printf("ans: %v\n", string(ans))
 }
+
+func Test_NewUpdateRangeRequest(t *testing.T) {
+	cells := make([]CellData, 0, 2)
+	cells = append(cells, GenTextCellData(`name is aaa`, FormatDefault))
+	cells = append(cells, GenTextCellData(`name is bbb`, FormatDefault))
+
+	row := GenRowData(cells)
+	mt := NewModifyTable(`1`)
+	mt.NewUpdateRangeRequest(`111`, 0, 0, row)
+	mt_json, _ := json.Marshal(mt)
+	fmt.Printf("mt: %v\n", string(mt_json))
+}

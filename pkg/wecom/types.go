@@ -5,7 +5,7 @@ var (
 	RED           Color      = Color{255, 0, 0, 1}
 	GREEN         Color      = Color{0, 255, 0, 1}
 	BLUE          Color      = Color{0, 0, 255, 1}
-	FormatDefault TextFormat = TextFormat{"Courier New", 14, false, false, false, false, BLACK}
+	FormatDefault TextFormat = TextFormat{"Microsoft YaHei", 14, false, false, false, false, BLACK}
 )
 
 type TokenReply struct {
@@ -14,6 +14,8 @@ type TokenReply struct {
 	Token        string `json:"access_token"`
 	ExpiredTimes int64  `json:"expires_in"`
 }
+
+//---------------------- Create A New Doc-------------------
 
 type NewDocSend struct {
 	Spaceid    string   `json:"spaceid"`
@@ -30,17 +32,43 @@ type NewDocReply struct {
 	Docid   string `json:"docid"`
 }
 
-// ----------------------------- Modify Tables Request Start -------------------------------
+//---------------------- Create A New Doc-------------------
+
+type RowColInfoSend struct {
+	Docid string `json:"docid"`
+}
+type RowColInfoReply struct {
+	Errcode int          `json:"errcode"`
+	Errmsg  string       `json:"errmsg"`
+	Data    []Properties `json:"data"`
+}
+
+type SheetDataSend struct {
+	Docid   string `json:"docid"`
+	SheetID string `json:"sheet_id"`
+	Range   string `json:"range"`
+}
+
+type SheetDataReply struct {
+	Errcode int    `json:"errcode"`
+	Errmsg  string `json:"errmsg"`
+	Data    struct {
+		Result GridData `json:"result"`
+	} `json:"data"`
+}
+
+// ----------------------------- Modify Tables Request -------------------------------
 type ModifyTable struct {
 	Docid    string     `json:"docid"`
-	Requests []Requests `json:"requests"`
+	Requests []Requests `json:"requests,omitempty"`
+	total    int
 }
 
 type Requests struct {
-	AddSheetRequest        AddSheetRequest        `json:"add_sheet_request,omitempty"`
-	UpdateRangeRequest     UpdateRangeRequest     `json:"update_range_request,omitempty"`
-	DeleteDimensionRequest DeleteDimensionRequest `json:"delete_dimension_request,omitempty"`
-	DeleteSheetRequest     DeleteSheetRequest     `json:"delete_sheet_request,omitempty"`
+	AddSheetRequest        *AddSheetRequest        `json:"add_sheet_request,omitempty"`
+	UpdateRangeRequest     *UpdateRangeRequest     `json:"update_range_request,omitempty"`
+	DeleteDimensionRequest *DeleteDimensionRequest `json:"delete_dimension_request,omitempty"`
+	DeleteSheetRequest     *DeleteSheetRequest     `json:"delete_sheet_request,omitempty"`
 }
 
 type AddSheetRequest struct {
@@ -117,9 +145,9 @@ type Color struct {
 	Alpha int `json:"alpha"`
 }
 
-// ----------------------------- Modify Tables Request End -------------------------------
+// ----------------------------- Modify Tables Request -------------------------------
 
-// ----------------------------- Modify Tables Response Start -------------------------------
+// ----------------------------- Modify Tables Response -------------------------------
 
 type Response struct {
 	Errcode int    `json:"errcode"`
@@ -155,4 +183,37 @@ type DeleteSheetResponse struct {
 	SheetID string `json:"sheet_id"`
 }
 
-// ----------------------------- Modify Tables Response End -------------------------------
+// ----------------------------- Modify Tables Response -------------------------------
+
+// ------------------------------ WeCom Notice Types -----------------------------------
+type Notice struct {
+	Msgtype  string    `json:"msgtype"`
+	Text     *Text     `json:"text,omitempty"`
+	Markdown *Markdown `json:"markdown,omitempty"`
+	Image    *Image    `json:"image,omitempty"`
+	News     *News     `json:"news,omitempty"`
+}
+type Text struct {
+	Content             string   `json:"content"`
+	MentionedList       []string `json:"mentioned_list"`
+	MentionedMobileList []string `json:"mentioned_mobile_list"`
+}
+
+type Markdown struct {
+	Content string `json:"content"`
+}
+
+type Image struct {
+	Base64 string `json:"base64"`
+	Md5    string `json:"md5"`
+}
+
+type News struct {
+	Articles []Article `json:"articles"`
+}
+type Article struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	URL         string `json:"url"`
+	Picurl      string `json:"picurl"`
+}
