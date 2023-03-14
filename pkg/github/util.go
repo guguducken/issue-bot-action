@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/guguducken/auto-release/pkg/util"
+	"github.com/guguducken/issue-bot/pkg/util"
 )
 
 func basicSet(req *http.Request, token string) {

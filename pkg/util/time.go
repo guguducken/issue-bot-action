@@ -23,7 +23,7 @@ func GetNow() int64 {
 	return time.Now().In(loc).UnixMilli()
 }
 
-type time_m struct {
+type Time_m struct {
 	Days       int64
 	Hours      int64
 	Minute     int64
@@ -31,8 +31,8 @@ type time_m struct {
 	MillSecond int64
 }
 
-func MStoTime(pass int64) (time_m, error) {
-	ti := time_m{}
+func MStoTime(pass int64) (Time_m, error) {
+	ti := Time_m{}
 	if pass < 0 {
 		return ti, EndLittleStart
 	}

@@ -186,7 +186,7 @@ type DeleteSheetResponse struct {
 // ----------------------------- Modify Tables Response -------------------------------
 
 // ------------------------------ WeCom Notice Types -----------------------------------
-type Notice struct {
+type WecomNotice struct {
 	Msgtype  string    `json:"msgtype"`
 	Text     *Text     `json:"text,omitempty"`
 	Markdown *Markdown `json:"markdown,omitempty"`

@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/guguducken/auto-release/pkg/util"
+	"github.com/guguducken/issue-bot/pkg/util"
 )
 
 var (

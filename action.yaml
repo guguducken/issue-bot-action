@@ -33,6 +33,12 @@ inputs:
   mentions:
     description: "mention list"
     required: false
+  corresponding:
+    description: 'the corresponding for github login to wecom'
+    required: true
+  cor_milestone:
+    description: ''
+    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'

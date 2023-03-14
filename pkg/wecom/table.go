@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/guguducken/auto-release/pkg/util"
+	"github.com/guguducken/issue-bot/pkg/util"
 )
 
 func GetTableInfo(docid string) (rcinfo RowColInfoReply, err error) {

@@ -1,4 +1,4 @@
-module github.com/guguducken/auto-release
+module github.com/guguducken/issue-bot
 
 go 1.20
 

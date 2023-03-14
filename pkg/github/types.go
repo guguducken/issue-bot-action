@@ -30,6 +30,7 @@ type Issue struct {
 	ClosedBy          User         `json:"closed_by"`
 	AuthorAssociation string       `json:"author_association"`
 	StateReason       string       `json:"state_reason"`
+	Repo              *Repo        `json:"repository,omitempty"` //GraphQL
 }
 type User struct {
 	Login             string     `json:"login"`
@@ -382,4 +383,27 @@ type Commit struct {
 		URL string `json:"url"`
 		Sha string `json:"sha"`
 	} `json:"parents"`
+}
+
+type ProjectV2 struct {
+	Data struct {
+		Repository struct {
+			ProjectV2 struct {
+				Items struct {
+					Edges []struct {
+						Node struct {
+							FieldValues struct {
+								Nodes []struct {
+									ID       string `json:"id,omitempty"`
+									Name     string `json:"name,omitempty"`
+									OptionID string `json:"optionId,omitempty"`
+								} `json:"nodes"`
+							} `json:"fieldValues"`
+							Content Issue `json:"content"`
+						} `json:"node"`
+					} `json:"edges"`
+				} `json:"items"`
+			} `json:"projectV2"`
+		} `json:"repository"`
+	} `json:"data"`
 }
