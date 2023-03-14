@@ -46,7 +46,7 @@ func NewCommitQuery(owner, repo, sha, path, author, committer string, since, unt
 }
 
 func (q *Q_Commits) GetCommits() ([]Commit, error) {
-	url := githubAPI + `/repos/` + q.owner + `/` + q.repo + `/commits`
+	url := githubRestAPI + `/repos/` + q.owner + `/` + q.repo + `/commits`
 	path := `per_page=` + strconv.Itoa(q.per_page)
 	if q.sha != "" {
 		path += `&sha=` + q.sha

@@ -39,7 +39,7 @@ func (q *Q_Pulls) AddPage() {
 }
 
 func (q *Q_Pulls) GetPullsByPage() (pulls []PullRequest, err error) {
-	url := githubAPI + `/repos/` + q.owner + `/` + q.repo + `/pulls`
+	url := githubRestAPI + `/repos/` + q.owner + `/` + q.repo + `/pulls`
 
 	path := `per_page=` + strconv.Itoa(q.per_page)
 	if q.state != "" {
@@ -111,7 +111,7 @@ func (q *Q_Pulls) getPullInfo(num, total int) {
 }
 
 func (q *Q_Pulls) UpdatePull(number int, head_sha string) error {
-	url := githubAPI + `/repos/` + q.owner + `/` + q.repo + `/pulls/` + strconv.Itoa(number) + `/update-branch`
+	url := githubRestAPI + `/repos/` + q.owner + `/` + q.repo + `/pulls/` + strconv.Itoa(number) + `/update-branch`
 	body, err := json.Marshal(struct {
 		HeadSha string `json:"expected_head_sha"`
 	}{
