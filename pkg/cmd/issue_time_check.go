@@ -108,6 +108,7 @@ func processWithRepo(repo_full string, milestone string, labels []string, times 
 			// 	expTime = times_skip[skipTimeInd]
 			// }
 
+			util.Warning(`weekly check issue: ` + strconv.Itoa(issues[j].Number))
 			issues[j].StartTime, err = github.GetProjectTime(repo[0], repo[1], issues[j].Number, `Start Time`)
 			if err != nil {
 				util.Error(err.Error())
@@ -117,9 +118,6 @@ func processWithRepo(repo_full string, milestone string, labels []string, times 
 				util.Error(err.Error())
 			}
 			issues[j].Status = github.GetProjectStatus(repo[0], repo[1], issues[j].Number)
-			// if time.Now().Weekday() == time.Sunday {
-
-			// }
 
 		}
 
