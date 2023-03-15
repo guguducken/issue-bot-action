@@ -8,7 +8,6 @@ import (
 
 	"github.com/guguducken/issue-bot/pkg/github"
 	"github.com/guguducken/issue-bot/pkg/util"
-	"github.com/guguducken/issue-bot/pkg/wecom"
 )
 
 // set env variable
@@ -95,7 +94,7 @@ func processWithRepo(repo_full string, milestone string, labels []string, times 
 			util.Error(err.Error())
 			continue
 		}
-		util.Info("Get issue from " + repo_full + " with labels " + labels[i] + " and milestone " + milestone + ", the number is: " + strconv.Itoa(len(issues)))
+		util.Info("Get issue from " + repo_full + " with labels " + labels[i] + " and milestone " + milestone + ", the total is: " + strconv.Itoa(len(issues)))
 		for j := 0; j < len(issues); j++ {
 			issues[j].UpdatedAt, err = github.GetLastUpdateTime(repo[0], repo[1], issues[j].Number)
 			if err != nil {
@@ -124,7 +123,7 @@ func processWithRepo(repo_full string, milestone string, labels []string, times 
 
 		}
 
-		wecom.GenTextMessage(``, arr_mentions, []string{})
+		// wecom.GenTextMessage(``, arr_mentions, []string{})
 	}
 }
 
