@@ -10,7 +10,7 @@ import (
 func basicSet(req *http.Request, token string) {
 	req.Header.Set(`Accept`, `*/*`)
 	req.Header.Set(`Authorization`, `Bearer `+token)
-	req.Header.Set(`X-GitHub-Api-Version`, `2022-11-28`)
+	// req.Header.Set(`X-GitHub-Api-Version`, `2022-11-28`)
 }
 
 func get(url string, token string) ([]byte, error) {

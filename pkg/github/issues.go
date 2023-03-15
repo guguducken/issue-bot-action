@@ -300,7 +300,7 @@ func GetProjectTime(owner, repo string, number int, timeChose string) (tp TimePr
 			} `json:"repository"`
 		} `json:"data"`
 	}
-	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { projectItems(first: 10) { nodes { fieldValueByName(name: \"` + timeChose + `\") { ... on ProjectV2ItemFieldDateValue { id updatedAt createdAt date } } } } } }}"}`
+	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { projectItems(first: 5) { nodes { fieldValueByName(name: \"` + timeChose + `\") { ... on ProjectV2ItemFieldDateValue { id updatedAt createdAt date } } } } } }}"}`
 	req, err := http.NewRequest(`POST`, githubGraphqlAPI, strings.NewReader(query))
 	if err != nil {
 		return
@@ -350,7 +350,7 @@ func GetProjectStatus(owner, repo string, number int) (str string) {
 		} `json:"data"`
 	}
 
-	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { number projectItems(first: 20) { nodes { fieldValueByName(name: \"Status\") { ... on ProjectV2ItemFieldSingleSelectValue { id name updatedAt } } } } } }}"}`
+	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { number projectItems(first: 5) { nodes { fieldValueByName(name: \"Status\") { ... on ProjectV2ItemFieldSingleSelectValue { id name updatedAt } } } } } }}"}`
 	reply, err := post(githubGraphqlAPI, token_github, []byte(query))
 	if err != nil {
 		return

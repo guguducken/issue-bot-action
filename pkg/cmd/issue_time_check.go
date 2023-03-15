@@ -65,7 +65,7 @@ func main() {
 	m := make(map[string]user, 100)
 	//query for different repo
 	for i := 0; i < len(arr_repos); i++ {
-		util.Info(`Start to check repo` + arr_repos[i] + ` with milestone ` + arr_milestones[i])
+		util.Info(`Start to check repo ` + arr_repos[i] + ` with milestone ` + arr_milestones[i])
 		processWithRepo(arr_repos[i], arr_milestones[i], arr_label_check, arr_time_check, arr_label_skip, arr_time_skip, arr_mentions, m)
 	}
 	//get all issues
