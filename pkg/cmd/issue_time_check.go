@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/guguducken/issue-bot/pkg/github"
@@ -95,7 +95,7 @@ func processWithRepo(repo_full string, milestone string, labels []string, times 
 			util.Error(err.Error())
 			continue
 		}
-		fmt.Printf("Get issue from %s with labels %v and milestone %v, the number is: %v\n", repo_full, labels[i], milestone, len(issues))
+		util.Info("Get issue from " + repo_full + " with labels " + labels[i] + " and milestone " + milestone + ", the number is: " + strconv.Itoa(len(issues)))
 		for j := 0; j < len(issues); j++ {
 			issues[j].UpdatedAt, err = github.GetLastUpdateTime(repo[0], repo[1], issues[j].Number)
 			if err != nil {
