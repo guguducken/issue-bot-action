@@ -10,6 +10,7 @@ import (
 
 	"github.com/guguducken/issue-bot/pkg/github"
 	"github.com/guguducken/issue-bot/pkg/util"
+	"github.com/guguducken/issue-bot/pkg/wecom"
 )
 
 // set env variable
@@ -60,35 +61,78 @@ func main() {
 	if err != nil {
 		util.Error(err.Error())
 	}
-	m := make(map[string]*user, 100)
-	//query for different repo
+	//针对每个用户进行issue统计
+	m := make(map[string]*User, 100)
+
+	//针对每个team进行issue统计
+	tm := make(map[string]*TeamIssue, 10)
+
+	//对issue进行过期时间检测
 	for i := 0; i < len(arr_repos); i++ {
 		util.Info(`Start to check repo ` + arr_repos[i] + ` with milestone ` + arr_milestones[i])
-		processWithRepo(arr_repos[i], arr_milestones[i], arr_label_check, arr_time_check, arr_label_skip, arr_time_skip, arr_mentions, teams, m)
+		processWithRepo(arr_repos[i], arr_milestones[i], arr_label_check, arr_time_check, arr_label_skip, arr_time_skip, arr_mentions, teams, m, tm)
 	}
-	//get all issues
+	//expired Time Notice
+	total := make(map[string]map[string]int, len(arr_repos))
+	for i := 0; i < len(arr_repos); i++ {
+		total[arr_repos[i]] = make(map[string]int)
+	}
+	for key, value := range m {
+		message := ``
+		for k, v := range value.Repo {
+			message += "`" + k + "`\n"
+			for i := 0; i < len(arr_label_check); i++ {
+				message += v.labelNoticeMess[arr_label_check[i]]
+				total[k][arr_label_check[i]] += v.labelIssueCount[arr_label_check[i]]
+			}
+		}
+		message += "Total: " + strconv.Itoa(value.Total)
+		message += "Assignee: @<" + value.Wecom + ">"
+		finalMess, _ := json.Marshal(wecom.GenMarkdownMessage(message, []string{})) //.SendWecomMessage()
+		fmt.Printf(" %s finalMess: %v\n", key, finalMess)
+	}
+	message := ``
+	for k, v := range total {
+		message += "`" + k + "`\n"
+		for vk, vv := range v {
+			message += vk + " total: `" + strconv.Itoa(vv) + "`\n"
+		}
+	}
+	wecom.GenMarkdownMessage(message, arr_mentions) //.SendWecomMessage()
 }
 
-type user struct {
-	login   string
-	wecom   string
-	content map[string]*struct {
-		labelContent map[string]*string
-	}
-	total  int
-	issues map[string]*struct {
-		number      int
-		title       string
-		url         string
-		workTime    util.Time_m
-		holiadyTime util.Time_m
-	}
-	teamName string
-	tables   struct {
-	}
+type User struct {
+	Login    string `json:"login"`
+	Wecom    string `json:"wecom"`
+	Repo     map[string]*Content
+	Total    int    `json:"total"`
+	TeamName string `json:"teamname"`
 }
 
-func processWithRepo(repo_full string, milestone string, labels []string, times []string, labels_skip, times_skip []string, arr_mentions []string, team map[string]Team, m map[string]*user) {
+type Content struct {
+	labelNoticeMess map[string]string
+	labelIssueCount map[string]int
+}
+
+type UserIssue struct {
+	Number      int         `json:"number"`
+	Title       string      `json:"title"`
+	Url         string      `json:"url"`
+	WorkTime    util.Time_m `json:"wotktime"`
+	HoliadyTime util.Time_m `json:"holidaytime"`
+	StartTime   github.TimeProject
+	EndTime     github.TimeProject
+	Status      string
+}
+
+type Tables struct {
+}
+
+type TeamIssue struct {
+	cor_issue map[string][]UserIssue
+}
+
+func processWithRepo(repo_full string, milestone string, labels []string, times []string, labels_skip, times_skip []string, arr_mentions []string, team map[string]Team, m map[string]*User, tm map[string]*TeamIssue) {
 	repo := strings.Split(repo_full, `/`)
 	for i := 0; i < len(labels); i++ {
 		q_issue := github.NewIssuesQuery(repo[0], repo[1], milestone, `open`, ``, ``, ``, ``, ``, nil, []string{labels[i]})
@@ -98,13 +142,14 @@ func processWithRepo(repo_full string, milestone string, labels []string, times 
 			continue
 		}
 		for j := 0; j < len(issues); j++ {
+			login := issues[j].Assignee.Login
+
 			util.Info(`Start to check issue ->>>> number: ` + strconv.Itoa(issues[j].Number) + ` title: ` + issues[j].Title)
 			la, err := github.GetLastUpdateTime(repo[0], repo[1], issues[j].Number)
-			if la.After(*issues[j].UpdatedAt) {
-				issues[j].UpdatedAt = la
-			}
 			if err != nil {
 				util.Error(err.Error())
+			} else if la.After(*issues[j].UpdatedAt) {
+				issues[j].UpdatedAt = la
 			}
 			t := times[i]
 			skipInd := checkLabelExit(issues[j], labels_skip)
@@ -119,58 +164,49 @@ func processWithRepo(repo_full string, milestone string, labels []string, times 
 			if err != nil {
 				util.Error(err.Error())
 			}
-			util.Info(`Pass: work--> ` + strconv.FormatInt(work.Days, 10) + `d-` + strconv.FormatInt(work.Hours, 10) + `h:` + strconv.FormatInt(work.Minute, 10) + `m:` + strconv.FormatInt(work.Second, 10) + `s == ` + strconv.FormatInt(work.TotalMillSecond, 10) + `ms || holiday--> ` + strconv.FormatInt(holiday.Days, 10) + `d-` + strconv.FormatInt(holiday.Hours, 10) + `h:` + strconv.FormatInt(holiday.Minute, 10) + `m:` + strconv.FormatInt(holiday.Second, 10) + `s` + strconv.FormatInt(holiday.MillSecond, 10) + ` == ` + strconv.FormatInt(holiday.TotalMillSecond, 10) + `ms || target--> ` + strconv.FormatInt(expTime, 10) + `h`)
+			util.Info(`Check: work--> ` + strconv.FormatInt(work.Days, 10) + `d-` + strconv.FormatInt(work.Hours, 10) + `h:` + strconv.FormatInt(work.Minute, 10) + `m:` + strconv.FormatInt(work.Second, 10) + `s == ` + strconv.FormatInt(work.TotalMillSecond, 10) + `ms || holiday--> ` + strconv.FormatInt(holiday.Days, 10) + `d-` + strconv.FormatInt(holiday.Hours, 10) + `h:` + strconv.FormatInt(holiday.Minute, 10) + `m:` + strconv.FormatInt(holiday.Second, 10) + `s` + strconv.FormatInt(holiday.MillSecond, 10) + ` == ` + strconv.FormatInt(holiday.TotalMillSecond, 10) + `ms || target--> ` + strconv.FormatInt(expTime, 10) + `h`)
 
 			if work.TotalMillSecond >= expTime*3600000 {
 				util.Warning(`>>> ` + repo_full + ` Warning issue: ` + strconv.Itoa(issues[j].Number) + ` - ` + issues[j].Title + ` update time: ` + issues[j].UpdatedAt.Format(time.RFC3339))
-				if _, ok := m[issues[j].Assignee.Login]; !ok {
-					m[issues[j].Assignee.Login] = &user{
-						login:    issues[j].Assignee.Login,
-						wecom:    team[issues[j].Assignee.Login].Wecom,
-						teamName: team[issues[j].Assignee.Login].Team,
-						total:    0,
-						content: make(map[string]*struct {
-							labelContent map[string]*string
-						}, 0),
-						issues: make(map[string]*struct {
-							number      int
-							title       string
-							url         string
-							workTime    util.Time_m
-							holiadyTime util.Time_m
-						}),
-						tables: struct {
-						}{},
+				if _, ok := m[login]; !ok {
+					m[login] = &User{
+						Login:    login,
+						Wecom:    team[login].Wecom,
+						TeamName: team[login].Team,
+						Total:    0,
+						Repo:     make(map[string]*Content, 5),
 					}
 				}
-				m[issues[j].Assignee.Login].total++
+				m[login].Total++
 
-				if _, ok := m[issues[j].Assignee.Login].content[repo[1]]; !ok {
-					m[issues[j].Assignee.Login].content[repo[1]] = &struct{ labelContent map[string]*string }{
-						labelContent: make(map[string]*string, 0),
+				if _, ok := m[login].Repo[repo_full]; !ok {
+					m[login].Repo[repo_full] = &Content{
+						labelNoticeMess: make(map[string]string, len(labels)),
+						labelIssueCount: make(map[string]int, len(labels)),
 					}
 				}
-				if m[issues[j].Assignee.Login].content[repo[1]] == nil {
-					m[issues[j].Assignee.Login].content[repo[1]] = &struct {
-						labelContent map[string]*string
-					}{
-						labelContent: make(map[string]*string, 10),
-					}
+				if _, ok := m[login].Repo[repo_full].labelNoticeMess[labels[i]]; !ok {
+					str := `**<font color=\"warning\">` + labels[i] + "</font>**\n"
+					m[login].Repo[repo_full].labelNoticeMess[labels[i]] = str
+					m[login].Repo[repo_full].labelIssueCount[labels[i]] = 0
 				}
-				if _, ok := m[issues[j].Assignee.Login].content[repo[1]].labelContent[labels[i]]; !ok {
-					str := `**<font color=\"warning\">` + labels[i] + `</font>**\n`
-					m[issues[j].Assignee.Login].content[repo[1]].labelContent[labels[i]] = &str
-				}
-				*m[issues[j].Assignee.Login].content[repo[1]].labelContent[labels[i]] += `-------------------------------------\n[` + issues[j].Title + `](` + issues[j].URL + `)\nUpdateAt: ` + issues[j].UpdatedAt.Format(time.RFC3339) + `\nWorked: ` + strconv.FormatInt(work.Days, 10) + `d-` + strconv.FormatInt(work.Hours, 10) + `h:` + strconv.FormatInt(work.Minute, 10) + `m:` + strconv.FormatInt(work.Second, 10) + `s\n`
-				fmt.Printf("m[issues[j]].login: %v\n", m[issues[j].Assignee.Login].login)
+				m[login].Repo[repo_full].labelNoticeMess[labels[i]] += "-------------------------------------\n[" + issues[j].Title + "](" + issues[j].URL + ")\nUpdateAt: " + issues[j].UpdatedAt.Format(time.RFC3339) + "\nWorked: " + strconv.FormatInt(work.Days, 10) + "d-" + strconv.FormatInt(work.Hours, 10) + "h:" + strconv.FormatInt(work.Minute, 10) + "m:" + strconv.FormatInt(work.Second, 10) + "s\n"
+				//对应的issue number+1
+				m[login].Repo[repo_full].labelIssueCount[labels[i]]++
+
+				fmt.Printf("m[issues[j]].login: %v\n", m[login].Login)
+				fmt.Printf("m[login].Content[repo_full].LabelContent[labels[i]]: %v\n", m[login].Repo[repo_full].labelNoticeMess[labels[i]])
+				fmt.Printf("m[login].Repo[repo_full].labelIssueCount[labels[i]]: %v\n", m[login].Repo[repo_full].labelIssueCount[labels[i]])
 			} else {
 				util.Info(`This issue time is not expired, so skip it`)
 			}
+			fmt.Println()
 		}
 
 		//sunday check total
 		if time.Now().In(time.FixedZone(`UTC`, 0)).Weekday() == time.Sunday {
 			for j := 0; j < len(issues); j++ {
+				login := issues[j].Assignee.Login
 				issues[j].StartTime, err = github.GetProjectTime(repo[0], repo[1], issues[j].Number, `Start Time`)
 				if err != nil {
 					util.Error(err.Error())
@@ -180,6 +216,23 @@ func processWithRepo(repo_full string, milestone string, labels []string, times 
 					util.Error(err.Error())
 				}
 				issues[j].Status = github.GetProjectStatus(repo[0], repo[1], issues[j].Number)
+
+				if _, ok := tm[team[login].Team]; !ok {
+					tm[team[login].Team] = &TeamIssue{
+						cor_issue: make(map[string][]UserIssue, 10),
+					}
+				}
+				if _, ok := tm[team[login].Team].cor_issue[login]; !ok {
+					tm[team[login].Team].cor_issue[login] = make([]UserIssue, 0, 10)
+				}
+				tm[team[login].Team].cor_issue[login] = append(tm[team[login].Team].cor_issue[login], UserIssue{
+					Number:    issues[j].Number,
+					Title:     issues[j].Title,
+					Url:       issues[j].URL,
+					StartTime: issues[j].StartTime,
+					EndTime:   issues[j].EndTime,
+					Status:    issues[j].Status,
+				})
 			}
 		}
 	}
@@ -194,4 +247,8 @@ func checkLabelExit(issue github.Issue, labels []string) int {
 		}
 	}
 	return -1
+}
+
+func genDetailTable(user User) string {
+	return ``
 }

@@ -192,7 +192,13 @@ type WecomNotice struct {
 	Markdown *Markdown `json:"markdown,omitempty"`
 	Image    *Image    `json:"image,omitempty"`
 	News     *News     `json:"news,omitempty"`
+	File     *File     `json:"file,omitempty"`
 }
+
+type File struct {
+	MediaID string `json:"media_id"`
+}
+
 type Text struct {
 	Content             string   `json:"content"`
 	MentionedList       []string `json:"mentioned_list"`
@@ -216,4 +222,12 @@ type Article struct {
 	Description string `json:"description"`
 	URL         string `json:"url"`
 	Picurl      string `json:"picurl"`
+}
+
+type FileUploadReply struct {
+	Errcode   int    `json:"errcode"`
+	Errmsg    string `json:"errmsg"`
+	Type      string `json:"type"`
+	MediaID   string `json:"media_id"`
+	CreatedAt string `json:"created_at"`
 }

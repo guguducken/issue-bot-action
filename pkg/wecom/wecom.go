@@ -7,12 +7,12 @@ import (
 )
 
 var (
-	url_notice string
+	notice_key string
 )
 
 func init() {
-	url_notice = os.Getenv(`INPUT_URL_NOTICE`)
-	if url_notice == "" {
+	notice_key = os.Getenv(`INPUT_NOTICE_KEY`)
+	if notice_key == "" {
 		util.Error(`WeCom notice url setting is invalid which will make notice fail, please check again`)
 	}
 }
