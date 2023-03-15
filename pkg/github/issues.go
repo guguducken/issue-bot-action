@@ -146,33 +146,43 @@ func (q *Q_Issus) getIssuesInfo(num, total int) {
 }
 
 func GetLastUpdateTime(owner, repo string, number int) (last *time.Time, err error) {
+	prLast, err := GetRelatePRLastUpdateTime(owner, repo, number)
+	if err != nil {
+		return
+	}
+	commitLast, err := GetRelatedCommitLastUpdateTime(owner, repo, number)
+	if commitLast.After(prLast) {
+		last = &commitLast
+		return
+	}
+	last = &prLast
+	return
+}
+
+func GetRelatedCommitLastUpdateTime(owner, repo string, number int) (la time.Time, err error) {
 	type Temp struct {
 		Data struct {
 			Repository struct {
 				Issue struct {
-					Number        int       `json:"number"`
-					CreatedAt     time.Time `json:"createdAt"`
-					UpdatedAt     time.Time `json:"updatedAt"`
 					TimelineItems struct {
 						Edges []struct {
 							Cursor string `json:"cursor"`
 							Node   *struct {
-								Source *struct {
-									ID        string    `json:"id"`
-									UpdatedAt time.Time `json:"updatedAt"`
-									CreatedAt time.Time `json:"createdAt"`
-								} `json:"source,omitempty"`
+								ID        string    `json:"id"`
+								CreatedAt time.Time `json:"createdAt"`
+								UpdatedAt time.Time `json:"updatedAt"`
 							} `json:"node,omitempty"`
 						} `json:"edges"`
 					} `json:"timelineItems"`
+					CreatedAt time.Time `json:"createdAt"`
+					UpdatedAt time.Time `json:"updatedAt"`
 				} `json:"issue"`
 			} `json:"repository"`
 		} `json:"data"`
 	}
+	cursor := `null`
 	per_page := 40
-	course := `null`
-
-	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { number createdAt updatedAt timelineItems(last: ` + strconv.Itoa(per_page) + `) { edges { node { ... on CrossReferencedEvent { source { ... on PullRequest { id updatedAt createdAt } } } ... on IssueComment { id updatedAt createdAt } } cursor } } } }}"}`
+	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `) { edges { node { ... on IssueComment { id createdAt updatedAt } } cursor } } createdAt updatedAt } }}"}`
 	reply, err := post(githubGraphqlAPI, token_github, []byte(query))
 	if err != nil {
 		return
@@ -182,24 +192,23 @@ func GetLastUpdateTime(owner, repo string, number int) (last *time.Time, err err
 	if err != nil {
 		return
 	}
-	la := t.Data.Repository.Issue.CreatedAt
-	if t.Data.Repository.Issue.UpdatedAt.After(t.Data.Repository.Issue.CreatedAt) {
-		la = t.Data.Repository.Issue.UpdatedAt
-	}
-	for course != t.Data.Repository.Issue.TimelineItems.Edges[0].Cursor {
-		course = t.Data.Repository.Issue.TimelineItems.Edges[0].Cursor
-		for i := 0; i < len(t.Data.Repository.Issue.TimelineItems.Edges); i++ {
-			if t.Data.Repository.Issue.TimelineItems.Edges[i].Node.Source == nil || t.Data.Repository.Issue.TimelineItems.Edges[i].Node.Source.ID == "" {
+
+	la = time.Date(1, 1, 1, 0, 0, 0, 0, time.FixedZone(`UTC`, 0))
+	edge := t.Data.Repository.Issue.TimelineItems.Edges
+	for len(edge) != 0 && cursor != edge[0].Cursor {
+		for i := len(edge) - 1; i >= 0; i-- {
+			if edge[i].Node == nil || edge[i].Node.ID == `` {
 				continue
 			}
-			if t.Data.Repository.Issue.TimelineItems.Edges[i].Node.Source.UpdatedAt.After(t.Data.Repository.Issue.TimelineItems.Edges[i].Node.Source.CreatedAt) {
-				t.Data.Repository.Issue.TimelineItems.Edges[i].Node.Source.CreatedAt = t.Data.Repository.Issue.TimelineItems.Edges[i].Node.Source.UpdatedAt
+			cursor = edge[i].Cursor
+			if edge[i].Node.CreatedAt.After(edge[i].Node.UpdatedAt) {
+				edge[i].Node.UpdatedAt = edge[i].Node.CreatedAt
 			}
-			if t.Data.Repository.Issue.TimelineItems.Edges[i].Node.Source.CreatedAt.After(la) {
-				la = t.Data.Repository.Issue.TimelineItems.Edges[i].Node.Source.CreatedAt
+			if edge[i].Node.UpdatedAt.After(la) {
+				la = edge[i].Node.UpdatedAt
 			}
 		}
-		query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { number createdAt updatedAt timelineItems(last: 40) { edges { node { ... on CrossReferencedEvent { source { ... on PullRequest { id updatedAt createdAt } } } ... on IssueComment { id updatedAt createdAt } } cursor } } } }}"}`
+		query = `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `, before: \"` + cursor + `\") { edges { node { ... on IssueComment { id createdAt updatedAt } } cursor } } createdAt updatedAt } }}"}`
 		reply, err = post(githubGraphqlAPI, token_github, []byte(query))
 		if err != nil {
 			return
@@ -208,9 +217,73 @@ func GetLastUpdateTime(owner, repo string, number int) (last *time.Time, err err
 		if err != nil {
 			return
 		}
+		edge = t.Data.Repository.Issue.TimelineItems.Edges
 	}
-	util.Info(`Get issue ` + strconv.Itoa(number) + ` laste update time: ` + la.Format(time.RFC3339))
-	return &la, nil
+	return
+}
+
+func GetRelatePRLastUpdateTime(owner, repo string, number int) (la time.Time, err error) {
+	type Temp struct {
+		Data struct {
+			Repository struct {
+				Issue struct {
+					TimelineItems struct {
+						Edges []struct {
+							Cursor string `json:"cursor"`
+							Node   struct {
+								Source *struct {
+									CreatedAt time.Time `json:"createdAt"`
+									UpdatedAt time.Time `json:"updatedAt"`
+									Number    int       `json:"number"`
+								} `json:"source"`
+							} `json:"node,omitempty"`
+						} `json:"edges"`
+					} `json:"timelineItems"`
+				} `json:"issue"`
+			} `json:"repository"`
+		} `json:"data"`
+	}
+
+	cursor := `null`
+	per_page := 40
+	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `) { edges { node { ... on CrossReferencedEvent { source { ... on PullRequest { createdAt updatedAt number } } } } cursor } } } }}"}`
+	reply, err := post(githubGraphqlAPI, token_github, []byte(query))
+	if err != nil {
+		return
+	}
+	t := Temp{}
+	err = json.Unmarshal(reply, &t)
+	if err != nil {
+		return
+	}
+
+	la = time.Date(2020, 1, 1, 0, 0, 0, 0, time.FixedZone(`UTC`, 0))
+	edge := t.Data.Repository.Issue.TimelineItems.Edges
+	for len(edge) != 0 && cursor != edge[0].Cursor {
+		for i := len(edge) - 1; i >= 0; i-- {
+			if edge[i].Node.Source == nil || edge[i].Cursor == `` {
+				continue
+			}
+			cursor = edge[i].Cursor
+			if edge[i].Node.Source.CreatedAt.After(edge[i].Node.Source.UpdatedAt) {
+				edge[i].Node.Source.UpdatedAt = edge[i].Node.Source.CreatedAt
+			}
+			if edge[i].Node.Source.UpdatedAt.After(la) {
+				la = edge[i].Node.Source.UpdatedAt
+			}
+		}
+		query = `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `, before: \"` + cursor + `\") { edges { node { ... on CrossReferencedEvent { source { ... on PullRequest { createdAt updatedAt number } } } } cursor } } } }}"}`
+		reply, err = post(githubGraphqlAPI, token_github, []byte(query))
+		if err != nil {
+			return
+		}
+		err = json.Unmarshal(reply, &t)
+		if err != nil {
+			return
+		}
+		edge = t.Data.Repository.Issue.TimelineItems.Edges
+	}
+	return
 }
 
 func GetProjectTime(owner, repo string, number int, timeChose string) (tp TimeProject, err error) {

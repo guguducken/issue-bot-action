@@ -113,16 +113,16 @@ func processWithRepo(repo_full string, milestone string, labels []string, times 
 			// 	expTime = times_skip[skipTimeInd]
 			// }
 
+			issues[j].StartTime, err = github.GetProjectTime(repo[0], repo[1], issues[j].Number, `Start Time`)
+			if err != nil {
+				util.Error(err.Error())
+			}
+			issues[j].EndTime, err = github.GetProjectTime(repo[0], repo[1], issues[j].Number, `End Time`)
+			if err != nil {
+				util.Error(err.Error())
+			}
+			issues[j].Status = github.GetProjectStatus(repo[0], repo[1], issues[j].Number)
 			if time.Now().Weekday() == time.Sunday {
-				issues[j].StartTime, err = github.GetProjectTime(repo[0], repo[1], issues[j].Number, `Start Time`)
-				if err != nil {
-					util.Error(err.Error())
-				}
-				issues[j].EndTime, err = github.GetProjectTime(repo[0], repo[1], issues[j].Number, `End Time`)
-				if err != nil {
-					util.Error(err.Error())
-				}
-				issues[j].Status = github.GetProjectStatus(repo[0], repo[1], issues[j].Number)
 
 			}
 

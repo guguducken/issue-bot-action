@@ -77,6 +77,22 @@ func Test_GetLastUpdateTime(t *testing.T) {
 	}
 	fmt.Printf("last: %v\n", last)
 }
+func Test_GetRelatePRLastUpdateTime(t *testing.T) {
+	last, err := GetRelatePRLastUpdateTime(`matrixorigin`, `matrixone`, 7066)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return
+	}
+	fmt.Printf("last: %v\n", last)
+}
+func Test_GetRelatedCommitLastUpdateTime(t *testing.T) {
+	last, err := GetRelatedCommitLastUpdateTime(`matrixorigin`, `matrixone`, 7066)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return
+	}
+	fmt.Printf("last: %v\n", last)
+}
 
 func Test_GetProjectTime(t *testing.T) {
 	fmt.Println(GetProjectTime(`matrixorigin`, `matrixone`, 3426, `End Time`))

@@ -3,7 +3,7 @@ package github
 var (
 	githubRestAPI    string = `https://api.github.com`
 	githubGraphqlAPI string = `https://api.github.com/graphql`
-	token_github     string = `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`
+	token_github     string = `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`
 )
 
 func init() {
