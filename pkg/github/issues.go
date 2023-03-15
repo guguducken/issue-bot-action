@@ -181,7 +181,7 @@ func GetRelatedCommitLastUpdateTime(owner, repo string, number int) (la time.Tim
 		} `json:"data"`
 	}
 	cursor := `null`
-	per_page := 40
+	per_page := 20
 	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `) { edges { node { ... on IssueComment { id createdAt updatedAt } } cursor } } createdAt updatedAt } }}"}`
 	reply, err := post(githubGraphqlAPI, token_github, []byte(query))
 	if err != nil {
@@ -196,11 +196,11 @@ func GetRelatedCommitLastUpdateTime(owner, repo string, number int) (la time.Tim
 	la = time.Date(1, 1, 1, 0, 0, 0, 0, time.FixedZone(`UTC`, 0))
 	edge := t.Data.Repository.Issue.TimelineItems.Edges
 	for len(edge) != 0 && cursor != edge[0].Cursor {
-		for i := len(edge) - 1; i >= 0; i-- {
+		cursor = edge[0].Cursor
+		for i := 0; i < len(edge); i++ {
 			if edge[i].Node == nil || edge[i].Node.ID == `` {
 				continue
 			}
-			cursor = edge[i].Cursor
 			if edge[i].Node.CreatedAt.After(edge[i].Node.UpdatedAt) {
 				edge[i].Node.UpdatedAt = edge[i].Node.CreatedAt
 			}
@@ -245,7 +245,7 @@ func GetRelatePRLastUpdateTime(owner, repo string, number int) (la time.Time, er
 	}
 
 	cursor := `null`
-	per_page := 40
+	per_page := 20
 	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `) { edges { node { ... on CrossReferencedEvent { source { ... on PullRequest { createdAt updatedAt number } } } } cursor } } } }}"}`
 	reply, err := post(githubGraphqlAPI, token_github, []byte(query))
 	if err != nil {
@@ -257,14 +257,14 @@ func GetRelatePRLastUpdateTime(owner, repo string, number int) (la time.Time, er
 		return
 	}
 
-	la = time.Date(2020, 1, 1, 0, 0, 0, 0, time.FixedZone(`UTC`, 0))
+	la = time.Date(1, 1, 1, 0, 0, 0, 0, time.FixedZone(`UTC`, 0))
 	edge := t.Data.Repository.Issue.TimelineItems.Edges
 	for len(edge) != 0 && cursor != edge[0].Cursor {
-		for i := len(edge) - 1; i >= 0; i-- {
+		cursor = edge[0].Cursor
+		for i := 0; i < len(edge); i++ {
 			if edge[i].Node.Source == nil || edge[i].Cursor == `` {
 				continue
 			}
-			cursor = edge[i].Cursor
 			if edge[i].Node.Source.CreatedAt.After(edge[i].Node.Source.UpdatedAt) {
 				edge[i].Node.Source.UpdatedAt = edge[i].Node.Source.CreatedAt
 			}
@@ -361,7 +361,7 @@ func GetProjectStatus(owner, repo string, number int) (str string) {
 		return
 	}
 	str = ``
-	la := time.Date(2020, 1, 1, 0, 0, 0, 0, time.FixedZone(`UTC`, 0))
+	la := time.Date(1, 1, 1, 0, 0, 0, 0, time.FixedZone(`UTC`, 0))
 	for i := 0; i < len(t.Data.Repository.Issue.ProjectItems.Nodes); i++ {
 		if t.Data.Repository.Issue.ProjectItems.Nodes[i].FieldValueByName != nil {
 			if t.Data.Repository.Issue.ProjectItems.Nodes[i].FieldValueByName.UpdatedAt.After(la) {

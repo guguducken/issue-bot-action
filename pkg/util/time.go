@@ -24,11 +24,12 @@ func GetNow() int64 {
 }
 
 type Time_m struct {
-	Days       int64
-	Hours      int64
-	Minute     int64
-	Second     int64
-	MillSecond int64
+	Days            int64
+	Hours           int64
+	Minute          int64
+	Second          int64
+	MillSecond      int64
+	TotalMillSecond int64
 }
 
 func MStoTime(pass int64) (Time_m, error) {
@@ -36,6 +37,7 @@ func MStoTime(pass int64) (Time_m, error) {
 	if pass < 0 {
 		return ti, EndLittleStart
 	}
+	ti.TotalMillSecond = pass
 	ti.MillSecond = pass % 1000
 	pass /= 1000
 
@@ -53,15 +55,19 @@ func MStoTime(pass int64) (Time_m, error) {
 	return ti, nil
 }
 
-func GetPassedTimeWithoutWeekend(t time.Time) (work int64, holiday int64, err error) {
+func GetPassedTimeWithoutWeekend(t time.Time) (work_t Time_m, holiday_t Time_m, err error) {
 	ti, mill_ti := t, t.UnixMilli()
 
 	now := time.Now().In(loc)
 	mill_now := now.UnixMilli()
 	pass, err := MStoTime(mill_now - mill_ti)
 	if err != nil {
-		return -1, -1, err
+		return
 	}
+	var (
+		work    int64 = 0
+		holiday int64 = 0
+	)
 
 	weeks := pass.Days / 7
 	if weeks >= 1 {
@@ -108,13 +114,18 @@ func GetPassedTimeWithoutWeekend(t time.Time) (work int64, holiday int64, err er
 		}
 		work += dura_one_end
 	}
+	work_t, err = MStoTime(work)
+	if err != nil {
+		return
+	}
+	holiday_t, err = MStoTime(holiday)
 	return
 }
 
-func GetPassedTimeWithoutWeekend_String(t string) (int64, int64, error) {
+func GetPassedTimeWithoutWeekend_String(t string) (Time_m, Time_m, error) {
 	ti, err := ParseTime(t)
 	if err != nil {
-		return -1, -1, err
+		return Time_m{}, Time_m{}, err
 	}
 	return GetPassedTimeWithoutWeekend(ti)
 }

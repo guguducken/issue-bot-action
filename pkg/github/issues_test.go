@@ -51,8 +51,8 @@ func Test_expired(t *testing.T) {
 		loc := time.FixedZone(`UTC`, 8*3600)
 		fmt.Printf("issue[i].CreatedAt.In(loc): %v\n", issue[i].CreatedAt.In(loc))
 		fmt.Printf("time.Now(): %v\n", time.Now())
-		fmt.Printf("issue[%d] work: %v\n", issue[i].Number, work/3600000)
-		fmt.Printf("issue[%d] holiday: %v\n", issue[i].Number, holiday/3600000)
+		fmt.Printf("issue[%d] work: %v\n", issue[i].Number, work)
+		fmt.Printf("issue[%d] holiday: %v\n", issue[i].Number, holiday)
 		fmt.Println("-----------------------------------------")
 	}
 }
@@ -70,7 +70,7 @@ func Test_graphql(t *testing.T) {
 }
 
 func Test_GetLastUpdateTime(t *testing.T) {
-	last, err := GetLastUpdateTime(`matrixorigin`, `matrixone`, 7066)
+	last, err := GetLastUpdateTime(`matrixorigin`, `matrixone`, 8457)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
@@ -78,7 +78,7 @@ func Test_GetLastUpdateTime(t *testing.T) {
 	fmt.Printf("last: %v\n", last)
 }
 func Test_GetRelatePRLastUpdateTime(t *testing.T) {
-	last, err := GetRelatePRLastUpdateTime(`matrixorigin`, `matrixone`, 7066)
+	last, err := GetRelatePRLastUpdateTime(`matrixorigin`, `matrixone`, 8420)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
@@ -86,7 +86,7 @@ func Test_GetRelatePRLastUpdateTime(t *testing.T) {
 	fmt.Printf("last: %v\n", last)
 }
 func Test_GetRelatedCommitLastUpdateTime(t *testing.T) {
-	last, err := GetRelatedCommitLastUpdateTime(`matrixorigin`, `matrixone`, 7066)
+	last, err := GetRelatedCommitLastUpdateTime(`matrixorigin`, `matrixone`, 8420)
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
@@ -100,4 +100,8 @@ func Test_GetProjectTime(t *testing.T) {
 
 func Test_GetProjectStatus(t *testing.T) {
 	fmt.Printf("GetProjectStatus(`matrixorigin`, `matrixone`, 8440): %v\n", GetProjectStatus(`matrixorigin`, `matrixone`, 3290))
+}
+
+func Test_GetStatus(t *testing.T) {
+	fmt.Printf("GetProjectStatus(`matrixorigin`, `matrixone`, 7951): %v\n", GetProjectStatus(`matrixorigin`, `matrixone`, 8457))
 }

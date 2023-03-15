@@ -30,6 +30,10 @@ func HttpDo(req *http.Request) ([]byte, error) {
 		Error(`http status code is invalid: ` + strconv.Itoa(resp.StatusCode) + ` resp message: ` + string(arr))
 		return nil, StatusError
 	}
+	if resp.Header.Get(`x-ratelimit-remaining`) == `0` {
+		Error(`The github resource have been consumed, the reset UTC time is: ` + resp.Header.Get(`x-ratelimit-reset`))
+		panic(`The github resource have been consumed, the reset UTC time is: ` + resp.Header.Get(`x-ratelimit-reset`))
+	}
 	return arr, nil
 }
 
