@@ -326,6 +326,7 @@ func GetProjectTime(owner, repo string, number int, timeChose string) (tp TimePr
 		}
 		tp = *t.Data.Repository.Issue.ProjectItems.Nodes[i].FieldValueByName
 	}
+	util.Info(`Get issue ` + strconv.Itoa(number) + ` ` + timeChose + `: ` + tp.Date)
 	return
 }
 
@@ -372,5 +373,6 @@ func GetProjectStatus(owner, repo string, number int) (str string) {
 	if str == `` {
 		util.Error(`Fail to get Status, please check again`)
 	}
+	util.Info(`Get issue ` + strconv.Itoa(number) + ` Status: ` + str)
 	return str
 }

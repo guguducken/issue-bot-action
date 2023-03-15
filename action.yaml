@@ -26,10 +26,6 @@ inputs:
     description: "this time will skip check the issue which labeled label_skip"
     required: false
     default: ""
-  notice_type:
-    description: "the type of message which need to send to robot"
-    required: false
-    default: "markdown"
   mentions:
     description: "mention list"
     required: false
@@ -44,3 +40,12 @@ runs:
   image: 'Dockerfile'
   args:
     - ${{ inputs.token_action }}
+    - ${{ inputs.repos }}
+    - ${{ inputs.label_check }}
+    - ${{ inputs.time_check }}
+    - ${{ inputs.uri_notice }}
+    - ${{ inputs.label_skip }}
+    - ${{ inputs.time_skip }}
+    - ${{ inputs.mentions }}
+    - ${{ inputs.corresponding }}
+    - ${{ inputs.cor_milestone }}

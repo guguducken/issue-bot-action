@@ -4,7 +4,7 @@ WORKDIR /workspace
 
 RUN go env -w GOPROXY="https://proxy.golang.org,direct"
 
-COPY release .
+COPY . .
 
 # Build
 RUN go build -o app ./pkg/cmd/issue_time_check.go
