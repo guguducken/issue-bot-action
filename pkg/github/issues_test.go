@@ -95,13 +95,28 @@ func Test_graphql(t *testing.T) {
 // }
 
 func Test_GetProjectTime(t *testing.T) {
-	fmt.Println(GetProjectTime(`matrixorigin`, `matrixone`, 3426, `End Time`))
-}
-
-func Test_GetProjectStatus(t *testing.T) {
-	fmt.Printf("GetProjectStatus(`matrixorigin`, `matrixone`, 8440): %v\n", GetProjectStatus(`matrixorigin`, `matrixone`, 3290))
+	fmt.Println(GetProjectTime(`matrixorigin`, `matrixone`, 8216, `End Time`))
 }
 
 func Test_GetStatus(t *testing.T) {
-	fmt.Printf("GetProjectStatus(`matrixorigin`, `matrixone`, 7951): %v\n", GetProjectStatus(`matrixorigin`, `matrixone`, 8457))
+	fmt.Printf("GetProjectStatus(`matrixorigin`, `matrixone`, 8216): %v\n", GetProjectStatus(`matrixorigin`, `matrixone`, 8216))
+}
+
+func Test_GetUnassignLogins(t *testing.T) {
+	fmt.Printf("GetUnassignLogins(`matrixorigin`, `matrixone`, 7278): %v\n", GetUnassignLogins(`matrixorigin`, `matrixone`, 7278))
+}
+
+func Test_GetAssignDetail(t *testing.T) {
+	events, err := GetAssignDetail(`matrixorigin`, `matrixone`, `https://api.github.com/repos/matrixorigin/matrixone/issues/7278/events`)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+	}
+	fmt.Printf("len(events): %v\n", len(events))
+	for i := len(events) - 1; i >= 0; i-- {
+		fmt.Printf("events[%d].Event: %v\n", i, events[i].Event)
+		if events[i].Event == `assigned` {
+			fmt.Println(`Assigner: ` + events[i].Assigner.Login)
+			fmt.Println(`Assignee: ` + events[i].Assignee.Login)
+		}
+	}
 }

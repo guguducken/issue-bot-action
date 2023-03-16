@@ -25,11 +25,7 @@ func main() {
 	arr_time_skip := strings.Split(time_skip, `,`)
 	arr_mentions := strings.Split(mentions, `,`)
 	arr_milestones := strings.Split(cor_milestones, `,`)
-	teams := make(map[string]Team, 60)
-	err := json.Unmarshal(([]byte)(corresponding), &teams)
-	if err != nil {
-		util.Error(err.Error())
-	}
+
 	//针对每个用户进行issue统计
 	m := make(map[string]*User, 100)
 

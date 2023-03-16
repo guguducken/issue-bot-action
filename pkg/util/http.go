@@ -4,13 +4,14 @@ import (
 	"crypto/tls"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 )
 
 func HttpDo(req *http.Request) ([]byte, error) {
-	timeout := time.Duration(10 * time.Second) //超时时间50ms
+	timeout := time.Duration(30 * time.Second) //超时时间50ms
 	client := &http.Client{
 		Timeout: timeout,
 		Transport: &http.Transport{
@@ -18,7 +19,11 @@ func HttpDo(req *http.Request) ([]byte, error) {
 		},
 	}
 	resp, err := client.Do(req)
+
 	if err != nil {
+		if err.(*url.Error).Timeout() {
+			return nil, TimeoutErr
+		}
 		return nil, err
 	}
 	arr, err := io.ReadAll(resp.Body)

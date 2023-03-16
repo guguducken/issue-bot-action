@@ -30,8 +30,8 @@ type Issue struct {
 	ClosedBy          *User        `json:"closed_by"`
 	AuthorAssociation string       `json:"author_association"`
 	StateReason       string       `json:"state_reason"`
-	StartTime         TimeProject
-	EndTime           TimeProject
+	StartTime         *TimeProject
+	EndTime           *TimeProject
 	Status            string
 }
 
@@ -40,6 +40,19 @@ type TimeProject struct {
 	Date      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Event struct {
+	ID        int64     `json:"id"`
+	NodeID    string    `json:"node_id"`
+	URL       string    `json:"url"`
+	Actor     User      `json:"actor"`
+	Event     string    `json:"event"`
+	CommitID  string    `json:"commit_id"`
+	CommitURL string    `json:"commit_url"`
+	CreatedAt time.Time `json:"created_at"`
+	Assignee  *User     `json:"assignee"`
+	Assigner  *User     `json:"assigner"`
 }
 
 type User struct {

@@ -6,13 +6,13 @@ var turn bool = true
 
 func Info(message string) {
 	if turn {
-		fmt.Printf("\x1b[0,40,32m[INFO]: \x1b[0m%s\n", message)
+		fmt.Printf("\x1b[32m[INFO]: \x1b[0m%s\n", message)
 	}
 }
 
 func Warning(message string) {
 	if turn {
-		fmt.Printf("\x1b[0,40,33m[WARNING]: \x1b[0m%s\n", message)
+		fmt.Printf("\x1b[33m[WARNING]: \x1b[0m%s\n", message)
 	}
 }
 

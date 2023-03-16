@@ -2,7 +2,12 @@
 
 package main
 
-import "os"
+import (
+	"encoding/json"
+	"os"
+
+	"github.com/guguducken/issue-bot/pkg/util"
+)
 
 var (
 	repos          string
@@ -13,6 +18,7 @@ var (
 	mentions       string
 	corresponding  string
 	cor_milestones string
+	teams          map[string]Team
 )
 
 func init() {
@@ -28,6 +34,12 @@ func init() {
 
 	if repos == "" || label_check == "" || time_check == "" || label_skip == "" || time_skip == "" || corresponding == "" {
 		panic(`repos, labels or time settings is error, please check again`)
+	}
+
+	teams = make(map[string]Team, 60)
+	err := json.Unmarshal(([]byte)(corresponding), &teams)
+	if err != nil {
+		util.Error(err.Error())
 	}
 
 }

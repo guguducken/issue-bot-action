@@ -20,7 +20,6 @@ func (w WecomNotice) SendWecomMessage() error {
 	if err != nil {
 		return nil
 	}
-	fmt.Printf("mess: %v\n", string(mess))
 	url := `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=` + notice_key
 	resp, err := http.Post(url, `application/json;charset=utf-8`, strings.NewReader(string(mess)))
 	if err != nil {
@@ -68,7 +67,6 @@ func sendWecomFile(message string, fileName string) (fp FileUploadReply, err err
 	if err != nil {
 		return
 	}
-	fmt.Printf("bodyBuffer.String(): %v\n", bodyBuffer.String())
 	err = bodyWriter.WriteField(`name`, `media`)
 	if err != nil {
 		return

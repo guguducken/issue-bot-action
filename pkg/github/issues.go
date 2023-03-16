@@ -52,6 +52,9 @@ func NewIssuesQuery(owner, repo, milestone, state, assignee, creator, mentoined,
 func (q *Q_Issus) AddPage() {
 	q.page++
 }
+func (q *Q_Issus) SubPage() {
+	q.page--
+}
 
 func (q *Q_Issus) GetIssuesByPage() ([]Issue, error) {
 	url := githubRestAPI + `/repos/` + q.owner + `/` + q.repo + `/issues`
@@ -69,7 +72,7 @@ func (q *Q_Issus) GetIssuesByPage() ([]Issue, error) {
 	if q.mentioned != "" {
 		path += `&mentioned=` + q.mentioned
 	}
-	if len(q.labels) != 0 {
+	if q.labels != nil && len(q.labels) != 0 {
 		path += `&labels=` + strings.Join(q.labels, ",")
 	}
 	if q.milestone != "" {
@@ -109,11 +112,22 @@ func (q *Q_Issus) GetIssuesByPage() ([]Issue, error) {
 
 func (q *Q_Issus) GetAllIssues() ([]Issue, error) {
 	issues_all := make([]Issue, 0, 300)
+	try_number := 1
 	for {
 		issues, err := q.GetIssuesByPage()
+		if err == util.TimeoutErr {
+			if try_number > 10 {
+				return nil, util.NertworkErr
+			}
+			util.Warning(`Get issues timeout, and we will retry, the retry number is ` + strconv.Itoa(try_number))
+			q.SubPage()
+			try_number++
+			continue
+		}
 		if err != nil {
 			return nil, err
 		}
+		try_number = 0
 		issues_all = append(issues_all, issues...)
 		q.getIssuesInfo(len(issues), len(issues_all))
 		if len(issues) < q.per_page {
@@ -215,7 +229,7 @@ func GetRelatePRLastUpdateTime(owner, repo string, number int) (la time.Time, er
 
 	cursor := `null`
 	per_page := 20
-	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `) { edges { node { ... on CrossReferencedEvent { source { ... on PullRequest { createdAt updatedAt number } } } } cursor } } } }}"}`
+	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `, itemTypes: CROSS_REFERENCED_EVENT) { edges { node { ... on CrossReferencedEvent { source { ... on PullRequest { createdAt updatedAt number } } } } cursor } } } }}"}`
 	reply, err := post(githubGraphqlAPI, token_github, []byte(query))
 	if err != nil {
 		return
@@ -238,7 +252,7 @@ func GetRelatePRLastUpdateTime(owner, repo string, number int) (la time.Time, er
 				la = edge[i].Node.Source.UpdatedAt
 			}
 		}
-		query = `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `, before: \"` + cursor + `\") { edges { node { ... on CrossReferencedEvent { source { ... on PullRequest { createdAt updatedAt number } } } } cursor } } } }}"}`
+		query = `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `, before: \"` + cursor + `\", itemTypes: CROSS_REFERENCED_EVENT) { edges { node { ... on CrossReferencedEvent { source { ... on PullRequest { createdAt updatedAt number } } } } cursor } } } }}"}`
 		reply, err = post(githubGraphqlAPI, token_github, []byte(query))
 		if err != nil {
 			return
@@ -252,7 +266,7 @@ func GetRelatePRLastUpdateTime(owner, repo string, number int) (la time.Time, er
 	return
 }
 
-func GetProjectTime(owner, repo string, number int, timeChose string) (tp TimeProject, err error) {
+func GetProjectTime(owner, repo string, number int, timeChose string) (tp *TimeProject, err error) {
 	type Temp struct {
 		Data struct {
 			Repository struct {
@@ -266,7 +280,7 @@ func GetProjectTime(owner, repo string, number int, timeChose string) (tp TimePr
 			} `json:"repository"`
 		} `json:"data"`
 	}
-	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { projectItems(first: 5) { nodes { fieldValueByName(name: \"` + timeChose + `\") { ... on ProjectV2ItemFieldDateValue { id updatedAt createdAt date } } } } } }}"}`
+	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { projectItems(includeArchived: false, first: 5) { nodes { fieldValueByName(name: \"` + timeChose + `\") { ... on ProjectV2ItemFieldDateValue { id updatedAt createdAt date } } } } } }}"}`
 	req, err := http.NewRequest(`POST`, githubGraphqlAPI, strings.NewReader(query))
 	if err != nil {
 		return
@@ -290,9 +304,18 @@ func GetProjectTime(owner, repo string, number int, timeChose string) (tp TimePr
 		if t.Data.Repository.Issue.ProjectItems.Nodes[i].FieldValueByName == nil {
 			continue
 		}
-		tp = *t.Data.Repository.Issue.ProjectItems.Nodes[i].FieldValueByName
+		tp = t.Data.Repository.Issue.ProjectItems.Nodes[i].FieldValueByName
 	}
-	util.Info(`Get issue ` + strconv.Itoa(number) + ` ` + timeChose + `: ` + tp.Date)
+	if tp != nil {
+		util.Info(`Get issue ` + strconv.Itoa(number) + ` ` + timeChose + `: ` + tp.Date)
+	} else {
+		util.Warning(`This issue ` + strconv.Itoa(number) + ` are not added to a project or set ` + timeChose + `, so set it to default black time`)
+		return &TimeProject{
+			Date:      "",
+			UpdatedAt: time.Now(),
+			CreatedAt: time.Now(),
+		}, nil
+	}
 	return
 }
 
@@ -316,7 +339,7 @@ func GetProjectStatus(owner, repo string, number int) (str string) {
 		} `json:"data"`
 	}
 
-	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { number projectItems(first: 5) { nodes { fieldValueByName(name: \"Status\") { ... on ProjectV2ItemFieldSingleSelectValue { id name updatedAt } } } } } }}"}`
+	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { number projectItems(includeArchived: false, first: 5) { nodes { fieldValueByName(name: \"Status\") { ... on ProjectV2ItemFieldSingleSelectValue { id name updatedAt } } } } } }}"}`
 	reply, err := post(githubGraphqlAPI, token_github, []byte(query))
 	if err != nil {
 		return
@@ -336,9 +359,105 @@ func GetProjectStatus(owner, repo string, number int) (str string) {
 			}
 		}
 	}
-	if str == `` {
-		util.Error(`Fail to get Status, please check again`)
+	if str == "" {
+		util.Warning(`this issue do not set progress or add it to a project, so set it to default Todo`)
+		str = "Todo"
 	}
 	util.Info(`Get issue ` + strconv.Itoa(number) + ` Status: ` + str)
 	return str
+}
+
+func GetUnassignLogins(owner, repo string, number int) (logins []string) {
+	per_page := 10
+	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(itemTypes: UNASSIGNED_EVENT, first: ` + strconv.Itoa(per_page) + `) { edges { node { ... on UnassignedEvent { createdAt user { login } } } } filteredCount } } }}"}`
+
+	type Temp struct {
+		Data struct {
+			Repository struct {
+				Issue struct {
+					TimelineItems struct {
+						Edges []struct {
+							Node struct {
+								User struct {
+									Login string `json:"login"`
+								} `json:"user"`
+							} `json:"node"`
+						} `json:"edges"`
+						FilteredCount int `json:"filteredCount"`
+						PageInfo      struct {
+							EndCursor string `json:"endCursor"`
+						} `json:"pageInfo"`
+					} `json:"timelineItems"`
+				} `json:"issue"`
+			} `json:"repository"`
+		} `json:"data"`
+	}
+
+	logins = make([]string, 0, 10)
+	m_logins := make(map[string]struct{}, 5)
+	reply, err := post(githubGraphqlAPI, token_github, []byte(query))
+	if err != nil {
+		return
+	}
+	t := Temp{}
+	err = json.Unmarshal(reply, &t)
+	if err != nil {
+		return
+	}
+	cursor := ``
+	for {
+		for i := 0; i < len(t.Data.Repository.Issue.TimelineItems.Edges); i++ {
+			if _, ok := m_logins[t.Data.Repository.Issue.TimelineItems.Edges[i].Node.User.Login]; !ok {
+				logins = append(logins, t.Data.Repository.Issue.TimelineItems.Edges[i].Node.User.Login)
+				m_logins[t.Data.Repository.Issue.TimelineItems.Edges[i].Node.User.Login] = struct{}{}
+			}
+		}
+		if t.Data.Repository.Issue.TimelineItems.FilteredCount < per_page {
+			break
+		}
+		cursor = t.Data.Repository.Issue.TimelineItems.PageInfo.EndCursor
+		query = `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(itemTypes: UNASSIGNED_EVENT, first: ` + strconv.Itoa(per_page) + `, after: \"` + cursor + `\") { edges { node { ... on UnassignedEvent { createdAt user { login } } } } filteredCount } } }}"}`
+		reply, err = post(githubGraphqlAPI, token_github, []byte(query))
+		if err != nil {
+			return
+		}
+		err = json.Unmarshal(reply, &t)
+		if err != nil {
+			return
+		}
+	}
+	return logins
+}
+
+func GetAssignDetail(owner, repo string, eventURL string) ([]Event, error) {
+	now := 100
+	per_page, page := 100, 1
+	events_all := make([]Event, 0, 100)
+	url := eventURL + `?per_page=` + strconv.Itoa(per_page) + `&page=` + strconv.Itoa(page)
+	reply, err := get(url, token_github)
+	if err != nil {
+		return events_all, err
+	}
+	err = json.Unmarshal(reply, &events_all)
+	if err != nil {
+		return events_all, err
+	}
+	now = len(events_all)
+
+	for per_page == now {
+		page++
+		url = eventURL + `?per_page=` + strconv.Itoa(per_page) + `&page=` + strconv.Itoa(page)
+		reply, err = get(url, token_github)
+		if err != nil {
+			return events_all, err
+		}
+		events := make([]Event, 0, 100)
+		err = json.Unmarshal(reply, &events)
+		if err != nil {
+			break
+		}
+		events_all = append(events_all, events...)
+		now = len(events)
+	}
+	return events_all, nil
 }
