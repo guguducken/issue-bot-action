@@ -8,27 +8,9 @@ inputs:
   repos:
     description: "the repo"
     required: true
-  
-  label_check:
-    description: "the label of issue which need to check"
-    required: true
-  time_check:
-    description: ''
-    required: true
-  uri_notice:
+  notice_key:
     description: "the webhook_uri which corresponding to robot"
     required: true
-  label_skip:
-    description: "this action will skip check the issue which labeled label_skip"
-    required: false
-    default: ""
-  time_skip:
-    description: "this time will skip check the issue which labeled label_skip"
-    required: false
-    default: ""
-  mentions:
-    description: "mention list"
-    required: false
   corresponding:
     description: 'the corresponding for github login to wecom'
     required: true
@@ -37,15 +19,10 @@ inputs:
     required: false
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'guguchecken/issue_bot:issue_status'
   args:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
-    - ${{ inputs.label_check }}
-    - ${{ inputs.time_check }}
-    - ${{ inputs.uri_notice }}
-    - ${{ inputs.label_skip }}
-    - ${{ inputs.time_skip }}
-    - ${{ inputs.mentions }}
+    - ${{ inputs.notice_key }}
     - ${{ inputs.corresponding }}
     - ${{ inputs.cor_milestone }}
