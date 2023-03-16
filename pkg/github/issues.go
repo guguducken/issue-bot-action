@@ -145,79 +145,48 @@ func (q *Q_Issus) getIssuesInfo(num, total int) {
 
 }
 
-func GetLastUpdateTime(owner, repo string, number int) (last *time.Time, err error) {
-	prLast, err := GetRelatePRLastUpdateTime(owner, repo, number)
+func GetLastUpdateTime(owner, repo string, issue Issue) time.Time {
+	prLast, err := GetRelatePRLastUpdateTime(owner, repo, issue.Number)
 	if err != nil {
-		return
+		util.Error(err.Error())
+		return time.Date(1, 1, 1, 0, 0, 0, 0, time.FixedZone(`UTC`, 0))
 	}
-	commitLast, err := GetRelatedCommitLastUpdateTime(owner, repo, number)
+	commitLast, err := GetRelatedCommitLastUpdateTime(owner, repo, issue.CommentsURL, issue.Assignee.Login)
+	if err != nil {
+		util.Error(err.Error())
+		return time.Date(1, 1, 1, 0, 0, 0, 0, time.FixedZone(`UTC`, 0))
+	}
+
 	if commitLast.After(prLast) {
-		last = &commitLast
-		return
+		return commitLast
 	}
-	last = &prLast
-	return
+	return prLast
 }
 
-func GetRelatedCommitLastUpdateTime(owner, repo string, number int) (la time.Time, err error) {
-	type Temp struct {
-		Data struct {
-			Repository struct {
-				Issue struct {
-					TimelineItems struct {
-						Edges []struct {
-							Cursor string `json:"cursor"`
-							Node   *struct {
-								ID        string    `json:"id"`
-								CreatedAt time.Time `json:"createdAt"`
-								UpdatedAt time.Time `json:"updatedAt"`
-							} `json:"node,omitempty"`
-						} `json:"edges"`
-					} `json:"timelineItems"`
-					CreatedAt time.Time `json:"createdAt"`
-					UpdatedAt time.Time `json:"updatedAt"`
-				} `json:"issue"`
-			} `json:"repository"`
-		} `json:"data"`
-	}
-	cursor := `null`
-	per_page := 20
-	query := `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `) { edges { node { ... on IssueComment { id createdAt updatedAt } } cursor } } createdAt updatedAt } }}"}`
-	reply, err := post(githubGraphqlAPI, token_github, []byte(query))
+func GetRelatedCommitLastUpdateTime(owner, repo string, comments_url string, assignee string) (la time.Time, err error) {
+	la = time.Date(1, 1, 1, 1, 0, 0, 0, time.FixedZone(`UTC`, 0))
+	resp, err := http.Get(comments_url)
 	if err != nil {
 		return
 	}
-	t := Temp{}
-	err = json.Unmarshal(reply, &t)
+	if resp.Header.Get(`x-ratelimit-remaining`) == `0` {
+		util.Error(`The github resource have been consumed, the reset UTC time is: ` + resp.Header.Get(`x-ratelimit-reset`))
+		panic(`The github resource have been consumed, the reset UTC time is: ` + resp.Header.Get(`x-ratelimit-reset`))
+	}
+	reply, err := io.ReadAll(resp.Body)
+	defer resp.Body.Close()
 	if err != nil {
 		return
 	}
-
-	la = time.Date(1, 1, 1, 0, 0, 0, 0, time.FixedZone(`UTC`, 0))
-	edge := t.Data.Repository.Issue.TimelineItems.Edges
-	for len(edge) != 0 && cursor != edge[0].Cursor {
-		cursor = edge[0].Cursor
-		for i := 0; i < len(edge); i++ {
-			if edge[i].Node == nil || edge[i].Node.ID == `` {
-				continue
-			}
-			if edge[i].Node.CreatedAt.After(edge[i].Node.UpdatedAt) {
-				edge[i].Node.UpdatedAt = edge[i].Node.CreatedAt
-			}
-			if edge[i].Node.UpdatedAt.After(la) {
-				la = edge[i].Node.UpdatedAt
-			}
+	comments := make([]Comment, 0, 10)
+	err = json.Unmarshal(reply, &comments)
+	if err != nil {
+		return
+	}
+	for i := len(comments) - 1; i >= 0; i-- {
+		if comments[i].User.Login == assignee {
+			return *comments[i].UpdatedAt, nil
 		}
-		query = `{"query":"{ repository(name: \"` + repo + `\", owner: \"` + owner + `\") { issue(number: ` + strconv.Itoa(number) + `) { timelineItems(last: ` + strconv.Itoa(per_page) + `, before: \"` + cursor + `\") { edges { node { ... on IssueComment { id createdAt updatedAt } } cursor } } createdAt updatedAt } }}"}`
-		reply, err = post(githubGraphqlAPI, token_github, []byte(query))
-		if err != nil {
-			return
-		}
-		err = json.Unmarshal(reply, &t)
-		if err != nil {
-			return
-		}
-		edge = t.Data.Repository.Issue.TimelineItems.Edges
 	}
 	return
 }
@@ -262,11 +231,8 @@ func GetRelatePRLastUpdateTime(owner, repo string, number int) (la time.Time, er
 	for len(edge) != 0 && cursor != edge[0].Cursor {
 		cursor = edge[0].Cursor
 		for i := 0; i < len(edge); i++ {
-			if edge[i].Node.Source == nil || edge[i].Cursor == `` {
+			if edge[i].Node.Source == nil {
 				continue
-			}
-			if edge[i].Node.Source.CreatedAt.After(edge[i].Node.Source.UpdatedAt) {
-				edge[i].Node.Source.UpdatedAt = edge[i].Node.Source.CreatedAt
 			}
 			if edge[i].Node.Source.UpdatedAt.After(la) {
 				la = edge[i].Node.Source.UpdatedAt

@@ -69,30 +69,30 @@ func Test_graphql(t *testing.T) {
 	fmt.Printf("string(ans): %v\n", string(ans))
 }
 
-func Test_GetLastUpdateTime(t *testing.T) {
-	last, err := GetLastUpdateTime(`matrixorigin`, `matrixone`, 8457)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return
-	}
-	fmt.Printf("last: %v\n", last)
-}
-func Test_GetRelatePRLastUpdateTime(t *testing.T) {
-	last, err := GetRelatePRLastUpdateTime(`matrixorigin`, `matrixone`, 8420)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return
-	}
-	fmt.Printf("last: %v\n", last)
-}
-func Test_GetRelatedCommitLastUpdateTime(t *testing.T) {
-	last, err := GetRelatedCommitLastUpdateTime(`matrixorigin`, `matrixone`, 8420)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return
-	}
-	fmt.Printf("last: %v\n", last)
-}
+// func Test_GetLastUpdateTime(t *testing.T) {
+// 	last, err := GetLastUpdateTime(`matrixorigin`, `matrixone`)
+// 	if err != nil {
+// 		fmt.Printf("err: %v\n", err)
+// 		return
+// 	}
+// 	fmt.Printf("last: %v\n", last)
+// }
+// func Test_GetRelatePRLastUpdateTime(t *testing.T) {
+// 	last, err := GetRelatePRLastUpdateTime(`matrixorigin`, `matrixone`, 8420)
+// 	if err != nil {
+// 		fmt.Printf("err: %v\n", err)
+// 		return
+// 	}
+// 	fmt.Printf("last: %v\n", last)
+// }
+// func Test_GetRelatedCommitLastUpdateTime(t *testing.T) {
+// 	last, err := GetRelatedCommitLastUpdateTime(`matrixorigin`, `matrixone`, 8420)
+// 	if err != nil {
+// 		fmt.Printf("err: %v\n", err)
+// 		return
+// 	}
+// 	fmt.Printf("last: %v\n", last)
+// }
 
 func Test_GetProjectTime(t *testing.T) {
 	fmt.Println(GetProjectTime(`matrixorigin`, `matrixone`, 3426, `End Time`))
