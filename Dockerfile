@@ -7,6 +7,6 @@ RUN go env -w GOPROXY="https://proxy.golang.org,direct"
 COPY . .
 
 # Build
-RUN go build -tags issue_time -o app ./pkg/cmd/issue_time_check.go
+RUN go build -tags issue_time -o app ./pkg/cmd/
 
 ENTRYPOINT ["/workspace/app"]

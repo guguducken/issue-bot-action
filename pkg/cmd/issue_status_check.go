@@ -6,9 +6,14 @@ package main
 import (
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/guguducken/issue-bot/pkg/github"
 	"github.com/guguducken/issue-bot/pkg/util"
+)
+
+var (
+	now time.Time = time.Now().In(time.FixedZone(`UTC`, 0))
 )
 
 type UserIssue struct {
