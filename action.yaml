@@ -1,5 +1,5 @@
 # action.yml
-name: 'Auto Release EKS'
+name: 'Issue Bot Action'
 description: 'Clearing namespace automatically after ns or the corresponding issue expires'
 inputs:
   token_action:  
@@ -11,21 +11,18 @@ inputs:
   corresponding:
     description: 'the corresponding for github login to wecom'
     required: true
-  sender_email:
-    description: ''
-    required: false
-  token_email:
-    description: ''
-    required: false
-  receiver_emails:
-    description: ''
-    required: false
-  body_message:
-    description: ''
-    required: false
-  cor_milestones:
-    description: ''
-    required: false
+  label_check:
+    description: 'the corresponding for github login to wecom'
+    required: true
+  time_check:
+    description: 'the corresponding for github login to wecom'
+    required: true
+  notice_key:
+    description: 'the corresponding for github login to wecom'
+    required: true
+  status:
+    description: 'the corresponding for github login to wecom'
+    required: true
 runs:
   using: 'docker'
   image: 'docker://guguchecken/issue_bot:issue_status'
@@ -33,8 +30,7 @@ runs:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
     - ${{ inputs.corresponding }}
-    - ${{ inputs.cor_milestones }}
-    - ${{ inputs.sender_email }}
-    - ${{ inputs.token_email }}
-    - ${{ inputs.receiver_emails }}
-    - ${{ inputs.body_message }}
+    - ${{ inputs.label_check }}
+    - ${{ inputs.time_check }}
+    - ${{ inputs.notice_key }}
+    - ${{ inputs.status }}
