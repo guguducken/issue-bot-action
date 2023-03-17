@@ -8,13 +8,22 @@ inputs:
   repos:
     description: "the repo"
     required: true
-  notice_key:
-    description: "the webhook_uri which corresponding to robot"
-    required: true
   corresponding:
     description: 'the corresponding for github login to wecom'
     required: true
-  cor_milestone:
+  sender_email:
+    description: ''
+    required: false
+  token_email:
+    description: ''
+    required: false
+  receiver_emails:
+    description: ''
+    required: false
+  body_message:
+    description: ''
+    required: false
+  cor_milestones:
     description: ''
     required: false
 runs:
@@ -23,6 +32,9 @@ runs:
   args:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
-    - ${{ inputs.notice_key }}
     - ${{ inputs.corresponding }}
-    - ${{ inputs.cor_milestone }}
+    - ${{ inputs.cor_milestones }}
+    - ${{ inputs.sender_email }}
+    - ${{ inputs.token_email }}
+    - ${{ inputs.receiver_emails }}
+    - ${{ input.body_message }}
