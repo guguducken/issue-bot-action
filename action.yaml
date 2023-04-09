@@ -26,6 +26,9 @@ inputs:
   cor_milestones:
     description: ''
     required: false
+  number_project:
+    description: ''
+    required: true
 runs:
   using: 'docker'
   image: 'docker://guguchecken/issue_bot:issue_status'
@@ -38,3 +41,4 @@ runs:
     - ${{ inputs.token_email }}
     - ${{ inputs.receiver_emails }}
     - ${{ inputs.body_message }}
+    - ${{ inputs.number_project }}
