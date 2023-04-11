@@ -1,5 +1,5 @@
 # action.yml
-name: 'Auto Release EKS'
+name: 'Auto Add Assignee'
 description: 'Clearing namespace automatically after ns or the corresponding issue expires'
 inputs:
   token_action:  
@@ -8,44 +8,9 @@ inputs:
   repos:
     description: "the repo"
     required: true
-  
-  label_check:
-    description: "the label of issue which need to check"
+  assignees:
+    description: ""
     required: true
-  time_check:
-    description: ''
-    required: true
-  uri_notice:
-    description: "the webhook_uri which corresponding to robot"
-    required: true
-  label_skip:
-    description: "this action will skip check the issue which labeled label_skip"
-    required: false
-    default: ""
-  time_skip:
-    description: "this time will skip check the issue which labeled label_skip"
-    required: false
-    default: ""
-  mentions:
-    description: "mention list"
-    required: false
-  corresponding:
-    description: 'the corresponding for github login to wecom'
-    required: true
-  cor_milestone:
-    description: ''
-    required: false
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args:
-    - ${{ inputs.token_action }}
-    - ${{ inputs.repos }}
-    - ${{ inputs.label_check }}
-    - ${{ inputs.time_check }}
-    - ${{ inputs.uri_notice }}
-    - ${{ inputs.label_skip }}
-    - ${{ inputs.time_skip }}
-    - ${{ inputs.mentions }}
-    - ${{ inputs.corresponding }}
-    - ${{ inputs.cor_milestone }}
+  using: 'node16'
+  main: 'src/index.js'
