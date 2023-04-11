@@ -13,11 +13,11 @@ async function getNoAssigneeIssues(repo_c) {
     let issues = await oc.rest.issues.listForRepo(
         {
             owner: repo_c.owner,
-            repo:repo_c.repo,
+            repo: repo_c.repo,
             state: "open",
             assignee: "none",
             per_page: 100,
-            page:1
+            page: 1
         }
     )
     issues_all.push(...issues.data)
@@ -27,11 +27,11 @@ async function getNoAssigneeIssues(repo_c) {
         issues = await oc.rest.issues.listForRepo(
             {
                 owner: repo_c.owner,
-                repo:repo_c.repo,
+                repo: repo_c.repo,
                 state: "open",
                 assignee: "none",
                 per_page: 100,
-                page:count
+                page: count
             }
         )
         issues_all.push(...issues.data)
@@ -41,8 +41,8 @@ async function getNoAssigneeIssues(repo_c) {
     return issues_all
 }
 
-async function addAssignee(repo_c,number,assginees) {
-    let {status: status} = await oc.rest.issues.addAssignees(
+async function addAssignee(repo_c, number, assginees) {
+    let { status: status } = await oc.rest.issues.addAssignees(
         {
             ...repo_c,
             issue_number: number,
@@ -61,7 +61,7 @@ async function run() {
         let issues = await getNoAssigneeIssues(
             {
                 owner: repo[0],
-                repo:repo[1]
+                repo: repo[1]
             }
         )
         core.info(`the number of issues which not assignee is: ${issues.length}`)
@@ -72,12 +72,12 @@ async function run() {
             }
             core.info(`Add assignees ${assignees} to issue ${issue.number}...`)
             let count = 0
-            while (await addAssignee(repo,issue.number,arr_assignees) != 201 && count < 10) {
-                core.info(`>>> failed, will try again... ${count+1}`)
+            while (await addAssignee({owner: repo[0],repo: repo[1]}, issue.number, arr_assignees) != 201 && count < 10) {
+                core.info(`>>> failed, will try again... ${count + 1}`)
             }
             if (count >= 10) {
                 core.info(`>>>>>try 10 times, skip this issue ${issue.number}`)
-            }else {
+            } else {
                 core.info(`>>>>>success`)
             }
             core.info(``)
