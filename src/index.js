@@ -42,15 +42,14 @@ async function getNoAssigneeIssues(repo_c) {
 }
 
 async function addAssignee(repo_c,number,assginees) {
-    // let {status: status} = await oc.rest.issues.addAssignees(
-    //     {
-    //         ...repo_c,
-    //         issue_number: number,
-    //         assignees: assginees
-    //     }
-    // )
-    // return status
-    return 201
+    let {status: status} = await oc.rest.issues.addAssignees(
+        {
+            ...repo_c,
+            issue_number: number,
+            assignees: assginees
+        }
+    )
+    return status
 }
 
 
@@ -81,7 +80,7 @@ async function run() {
             }else {
                 core.info(`>>>>>success`)
             }
-            core.info()
+            core.info(``)
         }
     }
 }
