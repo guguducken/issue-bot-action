@@ -23,6 +23,9 @@ inputs:
   status:
     description: 'the corresponding for github login to wecom'
     required: true
+  number_project:
+    description: 'the corresponding for github login to wecom'
+    required: true
 runs:
   using: 'docker'
   image: 'docker://guguchecken/issue_bot:issue_time'
@@ -34,3 +37,4 @@ runs:
     - ${{ inputs.time_check }}
     - ${{ inputs.notice_key }}
     - ${{ inputs.status }}
+    - ${{ inputs.number_project }}
