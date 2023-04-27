@@ -14,13 +14,7 @@ inputs:
   time_check:
     description: 'the corresponding for github login to wecom'
     required: true
-  notice_key:
-    description: 'the corresponding for github login to wecom'
-    required: true
   status:
-    description: 'the corresponding for github login to wecom'
-    required: true
-  mentions:
     description: 'the corresponding for github login to wecom'
     required: true
   number_project:
@@ -30,9 +24,6 @@ inputs:
     description: ''
     required: false
   sender_email:
-    description: ''
-    required: false
-  receiver_emails:
     description: ''
     required: false
   hit_max:
@@ -52,19 +43,16 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://guguchecken/issue_bot:issue-time-test'
+  image: 'docker://guguchecken/issue_bot:issue-time-pre-test'
   args:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
     - ${{ inputs.label_check }}
     - ${{ inputs.time_check }}
-    - ${{ inputs.notice_key }}
     - ${{ inputs.status }}
-    - ${{ inputs.mentions }}
     - ${{ inputs.number_project }}
     - ${{ inputs.token_email }}
     - ${{ inputs.sender_email }}
-    - ${{ inputs.receiver_emails }}
     - ${{ inputs.hit_max }}
     - ${{ inputs.db_user }}
     - ${{ inputs.db_passwd }}
