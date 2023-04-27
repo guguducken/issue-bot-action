@@ -8,9 +8,6 @@ inputs:
   repos:
     description: "the repo"
     required: true
-  corresponding:
-    description: 'the corresponding for github login to wecom'
-    required: true
   label_check:
     description: 'the corresponding for github login to wecom'
     required: true
@@ -23,18 +20,53 @@ inputs:
   status:
     description: 'the corresponding for github login to wecom'
     required: true
+  mentions:
+    description: 'the corresponding for github login to wecom'
+    required: true
   number_project:
     description: 'the corresponding for github login to wecom'
     required: true
+  token_email:
+    description: ''
+    required: false
+  sender_email:
+    description: ''
+    required: false
+  receiver_emails:
+    description: ''
+    required: false
+  hit_max:
+    description: ''
+    required: false
+  db_user:
+    description: ''
+    required: true
+  db_passwd:
+    description: ''
+    required: true
+  db_endpoint:
+    description: ''
+    required: true
+  db_database:
+    description: ''
+    required: true
 runs:
   using: 'docker'
-  image: 'docker://guguchecken/issue_bot:issue_time'
+  image: 'docker://guguchecken/issue_bot:issue_time_test'
   args:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
-    - ${{ inputs.corresponding }}
     - ${{ inputs.label_check }}
     - ${{ inputs.time_check }}
     - ${{ inputs.notice_key }}
     - ${{ inputs.status }}
+    - ${{ inputs.mentions }}
     - ${{ inputs.number_project }}
+    - ${{ inputs.token_email }}
+    - ${{ inputs.sender_email }}
+    - ${{ inputs.receiver_emails }}
+    - ${{ inputs.hit_max }}
+    - ${{ inputs.db_user }}
+    - ${{ inputs.db_passwd }}
+    - ${{ inputs.db_endpoint }}
+    - ${{ inputs.db_database }}
