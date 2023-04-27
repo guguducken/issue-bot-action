@@ -8,9 +8,6 @@ inputs:
   repos:
     description: "the repo"
     required: true
-  corresponding:
-    description: 'the corresponding for github login to wecom'
-    required: true
   sender_email:
     description: ''
     required: false
@@ -29,16 +26,31 @@ inputs:
   number_project:
     description: ''
     required: true
+  db_user:
+    description: ''
+    required: true
+  db_passwd:
+    description: ''
+    required: true
+  db_endpoint:
+    description: ''
+    required: true
+  db_database:
+    description: ''
+    required: true
 runs:
   using: 'docker'
   image: 'docker://guguchecken/issue_bot:issue_status'
   args:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
-    - ${{ inputs.corresponding }}
     - ${{ inputs.cor_milestones }}
     - ${{ inputs.sender_email }}
     - ${{ inputs.token_email }}
     - ${{ inputs.receiver_emails }}
     - ${{ inputs.body_message }}
     - ${{ inputs.number_project }}
+    - ${{ inputs.db_user }}
+    - ${{ inputs.db_passwd }}
+    - ${{ inputs.db_endpoint }}
+    - ${{ inputs.db_database }}
