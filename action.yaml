@@ -8,7 +8,10 @@ inputs:
   repos:
     description: "the repo"
     required: true
-  label_check:
+  labels_check:
+    description: 'the corresponding for github login to wecom'
+    required: true
+  labels_skip:
     description: 'the corresponding for github login to wecom'
     required: true
   time_check:
@@ -56,7 +59,8 @@ runs:
   args:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
-    - ${{ inputs.label_check }}
+    - ${{ inputs.labels_check }}
+    - ${{ inputs.labels_skip }}
     - ${{ inputs.time_check }}
     - ${{ inputs.notice_key }}
     - ${{ inputs.status }}
