@@ -43,7 +43,7 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://guguchecken/issue_bot:issue-time-pre-test'
+  image: 'docker://guguchecken/issue_bot:issue-time-pre-v0.0.1'
   args:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
