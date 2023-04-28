@@ -34,7 +34,7 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://guguchecken/issue_bot:issue-status-v0.0.2'
+  image: 'docker://guguchecken/issue_bot:issue-status-pre-v0.0.1'
   args:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
