@@ -10,19 +10,13 @@ inputs:
     required: true
   sender_email:
     description: ''
-    required: false
+    required: true
   token_email:
     description: ''
-    required: false
-  receiver_emails:
-    description: ''
-    required: false
-  body_message:
-    description: ''
-    required: false
+    required: true
   cor_milestones:
     description: ''
-    required: false
+    required: true
   number_project:
     description: ''
     required: true
@@ -47,8 +41,6 @@ runs:
     - ${{ inputs.cor_milestones }}
     - ${{ inputs.sender_email }}
     - ${{ inputs.token_email }}
-    - ${{ inputs.receiver_emails }}
-    - ${{ inputs.body_message }}
     - ${{ inputs.number_project }}
     - ${{ inputs.db_user }}
     - ${{ inputs.db_passwd }}
