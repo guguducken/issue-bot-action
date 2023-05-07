@@ -11,36 +11,18 @@ inputs:
   labels_check:
     description: 'the corresponding for github login to wecom'
     required: true
-  labels_skip:
-    description: 'the corresponding for github login to wecom'
-    required: true
-  time_check:
-    description: 'the corresponding for github login to wecom'
-    required: true
   notice_key:
-    description: 'the corresponding for github login to wecom'
-    required: true
-  status:
     description: 'the corresponding for github login to wecom'
     required: true
   mentions:
     description: 'the corresponding for github login to wecom'
     required: true
+  milestones:
+    description: 'the corresponding for github login to wecom'
+    required: true
   number_project:
     description: 'the corresponding for github login to wecom'
     required: true
-  token_email:
-    description: ''
-    required: false
-  sender_email:
-    description: ''
-    required: false
-  receiver_emails:
-    description: ''
-    required: false
-  hit_max:
-    description: ''
-    required: false
   db_user:
     description: ''
     required: true
@@ -55,21 +37,15 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://guguchecken/issue_bot:issue-time-v0.0.2'
+  image: 'docker://guguchecken/issue_bot:open-issue-notice-v0.0.1'
   args:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
     - ${{ inputs.labels_check }}
-    - ${{ inputs.labels_skip }}
-    - ${{ inputs.time_check }}
+    - ${{ inputs.milestones }}
     - ${{ inputs.notice_key }}
-    - ${{ inputs.status }}
     - ${{ inputs.mentions }}
     - ${{ inputs.number_project }}
-    - ${{ inputs.token_email }}
-    - ${{ inputs.sender_email }}
-    - ${{ inputs.receiver_emails }}
-    - ${{ inputs.hit_max }}
     - ${{ inputs.db_user }}
     - ${{ inputs.db_passwd }}
     - ${{ inputs.db_endpoint }}
