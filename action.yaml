@@ -35,6 +35,9 @@ inputs:
   db_database:
     description: ''
     required: true
+  release_name:
+    description: ''
+    required: true
 runs:
   using: 'docker'
   image: 'docker://guguchecken/issue_bot:open-issue-notice-v0.0.1'
@@ -50,3 +53,4 @@ runs:
     - ${{ inputs.db_passwd }}
     - ${{ inputs.db_endpoint }}
     - ${{ inputs.db_database }}
+    - ${{ inputs.release_name }}
