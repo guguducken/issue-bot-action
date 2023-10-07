@@ -40,7 +40,7 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://guguchecken/issue_bot:open-issue-notice-v0.0.1'
+  image: 'docker://guguchecken/issue_bot:open-issue-notice-v0.0.2'
   args:
     - ${{ inputs.token_action }}
     - ${{ inputs.repos }}
